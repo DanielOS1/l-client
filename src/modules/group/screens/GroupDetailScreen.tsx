@@ -67,6 +67,15 @@ export function GroupDetailScreen() {
               {activeGroup.description}
             </Text>
           )}
+
+          <View className="mt-4 flex-row">
+            <Button
+              title="Gestionar Semestres"
+              onPress={() => navigation.navigate("SemestersList", { groupId })}
+              className="flex-1 h-12"
+              // textClassName="text-sm"
+            />
+          </View>
         </View>
 
         <View className="px-4 space-y-6 pb-20">

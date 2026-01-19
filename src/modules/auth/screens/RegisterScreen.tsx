@@ -36,7 +36,6 @@ export function RegisterScreen() {
       return;
     }
 
-    // Basic formatting for RUT if needed, or send raw
     try {
       await register({
         firstName: form.firstName,
@@ -45,7 +44,6 @@ export function RegisterScreen() {
         password: form.password,
         rut: form.rut,
       });
-      // Success is usually handled by auto-login or redirect
     } catch (e: any) {
       Alert.alert(
         "Error",

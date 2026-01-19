@@ -12,6 +12,11 @@ import { CreateGroupScreen } from "../modules/group/screens/CreateGroupScreen";
 import { GroupDetailScreen } from "../modules/group/screens/GroupDetailScreen";
 import { CreateGroupRoleScreen } from "../modules/group/screens/CreateGroupRoleScreen";
 import { AddMemberScreen } from "../modules/group/screens/AddMemberScreen";
+import { SemestersListScreen } from "../modules/semester/screens/SemestersListScreen";
+import { CreateSemesterScreen } from "../modules/semester/screens/CreateSemesterScreen";
+import { SemesterDetailScreen } from "../modules/semester/screens/SemesterDetailScreen";
+import { CreateActivityScreen } from "../modules/activity/screens/CreateActivityScreen";
+import { ActivityDetailScreen } from "../modules/activity/screens/ActivityDetailScreen";
 
 const Stack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
@@ -53,6 +58,27 @@ export function RootNavigator() {
               component={CreateGroupRoleScreen}
             />
             <Stack.Screen name="AddMember" component={AddMemberScreen} />
+
+            <Stack.Screen
+              name="SemestersList"
+              component={SemestersListScreen}
+            />
+            <Stack.Screen
+              name="CreateSemester"
+              component={CreateSemesterScreen}
+            />
+            <Stack.Screen
+              name="SemesterDetail"
+              component={SemesterDetailScreen}
+            />
+            <Stack.Screen
+              name="CreateActivity"
+              component={CreateActivityScreen}
+            />
+            <Stack.Screen
+              name="ActivityDetail"
+              component={ActivityDetailScreen}
+            />
           </>
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />

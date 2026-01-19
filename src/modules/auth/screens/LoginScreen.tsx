@@ -29,7 +29,7 @@ export function LoginScreen() {
 
     try {
       await login(email, password);
-      // Navigation is handled by RootNavigator reacting to auth state
+
     } catch (e: any) {
       console.error("Login Error Details:", e);
       if (e.message === "Network Error") {
@@ -71,7 +71,7 @@ export function LoginScreen() {
                 autoCapitalize="none"
                 value={email}
                 onChangeText={setEmail}
-                error={error ? " " : undefined} // Just trigger red border if global error
+                error={error ? " " : undefined} 
               />
 
               <Input
