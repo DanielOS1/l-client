@@ -1,6 +1,7 @@
 import { api } from "../../../services/api";
 import { User } from "../../../types";
 import { jwtDecode } from "jwt-decode";
+import { ApiResponse } from "../../../types/api.types";
 
 interface AuthResponse {
   token: string;
@@ -19,38 +20,55 @@ interface JwtPayload {
 export const authService = {
   login: async (email: string, password: string): Promise<AuthResponse> => {
     console.log("🚀 ~ authService ~ login ~ email:", email);
-    const response = await api.post<BackendLoginResponse>("/auth/login", {
-      email,
-      password,
-    });
-    const { access_token } = response.data;
+    const response = await api.post<ApiResponse<BackendLoginResponse>>(
+      "/auth/login",
+      {
+        email,
+        password,
+      },
+    );
+    // Now AccessToken is in response.data.data.access_token
+    const { access_token } = response.data.data;
     console.log("🚀 ~ authService ~ login ~ access_token received");
 
     const decoded = jwtDecode<JwtPayload>(access_token);
     const userId = decoded.sub;
 
-    const userResponse = await api.get<User>(`/users/${userId}`, {
+    const userResponse = await api.get<ApiResponse<User>>(`/users/${userId}`, {
       headers: { Authorization: `Bearer ${access_token}` },
     });
 
     return {
       token: access_token,
-      user: userResponse.data,
+      user: userResponse.data.data,
     };
   },
 
   register: async (userData: Partial<User>): Promise<AuthResponse> => {
-    const response = await api.post<any>("/auth/register", userData);
+    const response = await api.post<ApiResponse<any>>(
+      "/auth/register",
+      userData,
+    );
 
-    if (response.data.access_token) {
-      const { access_token } = response.data;
+    // Register might return the user or an access token depending on backend.
+    // Assuming backend returns just object, but based on code below it expects access_token?
+    // The previous code was: if (response.data.access_token)
+    // Now it is: if (response.data.data.access_token)
+
+    const responseData = response.data.data;
+
+    if (responseData.access_token) {
+      const { access_token } = responseData;
       const decoded = jwtDecode<JwtPayload>(access_token);
-      const userResponse = await api.get<User>(`/users/${decoded.sub}`, {
-        headers: { Authorization: `Bearer ${access_token}` },
-      });
-      return { token: access_token, user: userResponse.data };
+      const userResponse = await api.get<ApiResponse<User>>(
+        `/users/${decoded.sub}`,
+        {
+          headers: { Authorization: `Bearer ${access_token}` },
+        },
+      );
+      return { token: access_token, user: userResponse.data.data };
     }
 
-    return { token: "", user: response.data };
+    return { token: "", user: responseData };
   },
 };
