@@ -2,14 +2,18 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import Constants from "expo-constants";
 
+import { API_URL as ENV_API_URL } from "@env";
+
 /**
  * Dynamically determines the API URL.
- * - In production/standalone: Uses the defined prod URL.
- * - In development: Tries to use the IP of the machine running Expo (Metro).
+ * - Uses .env file if available (PRIMARY).
+ * - Fallback to Expo constants or localhost for convenience.
  */
 const getApiUrl = () => {
-  // 1. If we have a hardcoded production URL, return it (uncomment for prod/staging)
-  // return 'https://api.lolosapp.com';
+  // 1. Prefer .env configuration
+  if (ENV_API_URL) {
+    return ENV_API_URL;
+  }
 
   // 2. In Expo Go/Dev Client, we can get the host IP from the manifest
   const debuggerHost = Constants.expoConfig?.hostUri; // e.g. "192.168.1.10:8081"
@@ -20,10 +24,9 @@ const getApiUrl = () => {
     return `http://${ip}:3000`;
   }
 
-  // 3. Fallback to localhost (Android Emulator needs 10.0.2.2 usually, but dynamic IP is better)
-  // If running on web or unknown:
+  // 3. Fallback to localhost
   console.warn(
-    "⚠️ No se pudo detectar la IP dinámica. Usando fallback para Emulador Android (10.0.2.2)."
+    "⚠️ No API_URL in .env and no dynamic IP detected. Using fallback (10.0.2.2).",
   );
   return localhost;
 };
@@ -51,5 +54,5 @@ api.interceptors.response.use(
   (error) => {
     // Optional: Handle 401 Unauthorized globally (e.g. logout)
     return Promise.reject(error);
-  }
+  },
 );
