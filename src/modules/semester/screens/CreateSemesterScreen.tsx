@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, SafeAreaView, Alert } from "react-native";
+import { View, Text, Alert } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useSemesterStore } from "../../../store/useSemesterStore";
 import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
 import { DatePicker } from "../../../components/DatePicker";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export function CreateSemesterScreen() {
   const navigation = useNavigation();

@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
-import { View, Text, SafeAreaView, ScrollView } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useSemesterStore } from "../../../store/useSemesterStore";
 import { Button } from "../../../components/Button";
 import { SemesterAgenda } from "../components/SemesterAgenda";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export function SemesterDetailScreen() {
   const route = useRoute<any>();

@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
   RefreshControl,
@@ -11,6 +10,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { useSemesterStore } from "../../../store/useSemesterStore";
 import { Button } from "../../../components/Button";
 import { Plus, Calendar, ChevronRight } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export function SemestersListScreen() {
   const navigation = useNavigation<any>();

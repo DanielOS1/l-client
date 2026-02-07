@@ -2,11 +2,11 @@ import React, { useEffect } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   FlatList,
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useGroupStore } from "../../../store/useGroupStore";
@@ -27,7 +27,7 @@ export function GroupsListScreen() {
 
   const handleGroupPress = (group: any) => {
     setActiveGroup(group);
-    navigation.navigate("GroupDetail", { groupId: group.id });
+    navigation.navigate("GroupTabs", { groupId: group.id });
   };
 
   const renderItem = ({ item }: { item: any }) => (
@@ -51,11 +51,11 @@ export function GroupsListScreen() {
     <SafeAreaView className="flex-1 bg-slate-50">
       <View className="p-6">
         <View className="flex-row justify-between items-center mb-6">
-          <View>
+          <View className="">
             <Text className="text-2xl font-bold text-slate-900">
-              Mis Grupos
+              Hola, {user?.firstName}
             </Text>
-            <Text className="text-slate-500">Hola, {user?.firstName}</Text>
+            <Text className="text-slate-500">Mis Grupos</Text>
           </View>
           <TouchableOpacity
             onPress={logout}

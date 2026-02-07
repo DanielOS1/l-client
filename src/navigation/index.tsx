@@ -8,8 +8,9 @@ import { RegisterScreen } from "../modules/auth/screens/RegisterScreen";
 import { Button } from "../components/Button";
 
 import { GroupsListScreen } from "../modules/group/screens/GroupsListScreen";
+import { GroupTabNavigator } from "./GroupTabNavigator";
+
 import { CreateGroupScreen } from "../modules/group/screens/CreateGroupScreen";
-import { GroupDetailScreen } from "../modules/group/screens/GroupDetailScreen";
 import { CreateGroupRoleScreen } from "../modules/group/screens/CreateGroupRoleScreen";
 import { AddMemberScreen } from "../modules/group/screens/AddMemberScreen";
 import { SemestersListScreen } from "../modules/semester/screens/SemestersListScreen";
@@ -51,8 +52,8 @@ export function RootNavigator() {
         {isAuthenticated ? (
           <>
             <Stack.Screen name="GroupsList" component={GroupsListScreen} />
+            <Stack.Screen name="GroupTabs" component={GroupTabNavigator} />
             <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
-            <Stack.Screen name="GroupDetail" component={GroupDetailScreen} />
             <Stack.Screen
               name="CreateGroupRole"
               component={CreateGroupRoleScreen}

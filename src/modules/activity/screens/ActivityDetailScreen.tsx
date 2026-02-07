@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   ScrollView,
   RefreshControl,
 } from "react-native";
@@ -10,7 +9,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { useActivityStore } from "../../../store/useActivityStore";
 import { Button } from "../../../components/Button";
 import { MapPin, Calendar, Users, DollarSign } from "lucide-react-native";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 export function ActivityDetailScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation();

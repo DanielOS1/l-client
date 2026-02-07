@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, SafeAreaView, Alert } from "react-native";
+import { View, Text, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useGroupStore } from "../../../store/useGroupStore";
 import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export function CreateGroupScreen() {
   const navigation = useNavigation();
