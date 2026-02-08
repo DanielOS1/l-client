@@ -24,6 +24,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Card } from "react-native-paper";
 import { goalService, Goal } from "../../finance/services/goal.service";
+import { ROLE_LEVELS } from "../../../constants/role-levels";
+import { useAuthStore } from "../../../store/useAuthStore";
+import { UpcomingActivities } from "../components/UpcomingActivities";
 
 const SummaryCard = ({
   icon: Icon,
@@ -59,7 +62,15 @@ export function GroupDetailScreen() {
   const navigation = useNavigation<any>();
   const { groupId } = route.params;
   const { activeGroup, getGroupDetails, isLoading } = useGroupStore();
+  const { user } = useAuthStore();
   const [activeGoal, setActiveGoal] = useState<Goal | null>(null);
+
+  // Find current user's role level
+  const currentUserGroup = activeGroup?.userGroups?.find(
+    (ug) => ug.user.id === user?.id
+  );
+  const myLevel = currentUserGroup?.groupRole?.level || 0;
+  const canManageMembers = myLevel >= ROLE_LEVELS.ADMIN;
 
   useEffect(() => {
     if (groupId) {
@@ -175,6 +186,9 @@ export function GroupDetailScreen() {
             </View>
           </View>
 
+          {/* Upcoming Activities Section */}
+          <UpcomingActivities groupId={groupId} />
+
           {/* Mis Compromisos Section */}
           <View className="mt-6 px-2">
             <View className="flex-row justify-between items-center mb-4">
@@ -199,25 +213,33 @@ export function GroupDetailScreen() {
           </View>
 
           {/* Legacy Sections (Roles & Miembros) - Kept below for functionality */}
-          <View className="mt-8 px-2 space-y-6">
-            <View>
-              <Text className="text-lg font-bold text-slate-800 mb-3">Administración</Text>
-              <View className="flex-row gap-2">
-                <Button
-                  title="Roles"
-                  variant="secondary"
-                  className="flex-1"
-                  onPress={() => { }} // TODO: Expand roles view
-                />
-                <Button
-                  title="Gestionar Semestres"
-                  variant="secondary"
-                  className="flex-1"
-                  onPress={() => navigation.navigate("SemestersList", { groupId })}
-                />
+          {canManageMembers && (
+            <View className="mt-8 px-2 space-y-6">
+              <View>
+                <Text className="text-lg font-bold text-slate-800 mb-3">Administración</Text>
+                <View className="flex-row gap-2 flex-wrap">
+                  <Button
+                    title="Roles"
+                    variant="secondary"
+                    className="flex-1 min-w-[45%]"
+                    onPress={() => navigation.navigate("GroupRolesList", { groupId })}
+                  />
+                  <Button
+                    title="Gestionar Semestres"
+                    variant="secondary"
+                    className="flex-1 min-w-[45%]"
+                    onPress={() => navigation.navigate("SemestersList", { groupId })}
+                  />
+                  <Button
+                    title="Agregar Miembro"
+                    variant="primary" // Highlight this action
+                    className="w-full mt-2"
+                    onPress={() => navigation.navigate("AddMember", { groupId })}
+                  />
+                </View>
               </View>
             </View>
-          </View>
+          )}
 
         </View>
       </ScrollView>

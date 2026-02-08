@@ -6,6 +6,8 @@ export interface GroupRole {
   name: string;
   description?: string;
   isDefault: boolean;
+  level: number;
+  isSystem: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -7,6 +7,7 @@ import { useGroupStore } from "../../../store/useGroupStore";
 import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
 import { Search, UserPlus } from "lucide-react-native";
+import Toast from 'react-native-toast-message';
 
 export function AddMemberScreen() {
   const navigation = useNavigation<any>();
@@ -20,6 +21,8 @@ export function AddMemberScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
+
+
   const handleSearch = async () => {
     if (!email.trim()) return;
     setIsLoading(true);
@@ -30,10 +33,11 @@ export function AddMemberScreen() {
       );
       setFoundUser(result);
     } catch (e) {
-      Alert.alert(
-        "No encontrado",
-        "No existe un usuario con ese correo electrónico."
-      );
+      Toast.show({
+        type: 'error',
+        text1: 'No encontrado',
+        text2: 'No existe un usuario con ese correo electrónico.',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -44,14 +48,21 @@ export function AddMemberScreen() {
     setIsAdding(true);
     try {
       await groupService.addMember(groupId, foundUser.id, user.id);
-      Alert.alert("Éxito", `${foundUser.firstName} ha sido agregado al grupo.`);
+
+      Toast.show({
+        type: 'success',
+        text1: 'Éxito',
+        text2: `${foundUser.firstName} ha sido agregado al grupo.`
+      });
+
       await getGroupDetails(groupId); // Refresh group details
       navigation.goBack();
     } catch (e: any) {
-      Alert.alert(
-        "Error",
-        e.response?.data?.message || "Error al agregar miembro."
-      );
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: e.response?.data?.message || "Error al agregar miembro."
+      });
     } finally {
       setIsAdding(false);
     }
@@ -100,7 +111,7 @@ export function AddMemberScreen() {
                 isLoading={isAdding}
                 icon={<UserPlus size={18} color="white" />}
                 className="h-10 px-4"
-                // textClassName="text-sm"
+              // textClassName="text-sm"
               />
             </View>
           </View>

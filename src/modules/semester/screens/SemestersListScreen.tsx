@@ -11,6 +11,9 @@ import { useSemesterStore } from "../../../store/useSemesterStore";
 import { Button } from "../../../components/Button";
 import { Plus, Calendar, ChevronRight } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuthStore } from "../../../store/useAuthStore";
+import { useGroupStore } from "../../../store/useGroupStore";
+import { ROLE_LEVELS } from "../../../constants/role-levels";
 
 export function SemestersListScreen() {
   const navigation = useNavigation<any>();
@@ -18,6 +21,14 @@ export function SemestersListScreen() {
   const { groupId } = route.params;
   const { semesters, fetchGroupSemesters, isLoading, setActiveSemester } =
     useSemesterStore();
+  const { user } = useAuthStore();
+  const { activeGroup } = useGroupStore();
+
+  const currentUserGroup = activeGroup?.userGroups?.find(
+    (ug) => ug.user.id === user?.id
+  );
+  const myLevel = currentUserGroup?.groupRole?.level || 0;
+  const canManage = myLevel >= ROLE_LEVELS.ADMIN;
 
   useEffect(() => {
     if (groupId) {
@@ -57,13 +68,15 @@ export function SemestersListScreen() {
       <View className="p-6">
         <View className="flex-row justify-between items-center mb-6">
           <Text className="text-2xl font-bold text-slate-900">Semestres</Text>
-          <Button
-            title="Nuevo"
-            onPress={() => navigation.navigate("CreateSemester", { groupId })}
-            variant="ghost"
-            className="h-10 px-3"
-            icon={<Plus size={20} color="#2563EB" />}
-          />
+          {canManage && (
+            <Button
+              title="Nuevo"
+              onPress={() => navigation.navigate("CreateSemester", { groupId })}
+              variant="ghost"
+              className="h-10 px-3"
+              icon={<Plus size={20} color="#2563EB" />}
+            />
+          )}
         </View>
 
         {semesters.length === 0 && !isLoading ? (
@@ -71,11 +84,13 @@ export function SemestersListScreen() {
             <Text className="text-slate-500 mb-4 text-center">
               No hay semestres registrados.
             </Text>
-            <Button
-              title="Crear Primer Semestre"
-              onPress={() => navigation.navigate("CreateSemester", { groupId })}
-              className="w-full max-w-[200px]"
-            />
+            {canManage && (
+              <Button
+                title="Crear Primer Semestre"
+                onPress={() => navigation.navigate("CreateSemester", { groupId })}
+                className="w-full max-w-[200px]"
+              />
+            )}
           </View>
         ) : (
           <FlatList

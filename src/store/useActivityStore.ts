@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { Activity } from "../types/operations.types";
 import { activityService } from "../modules/activity/services/activity.service";
+import { assignmentService } from "../modules/activity/services/assignment.service";
 
 interface ActivityState {
   activities: Activity[];
@@ -14,11 +15,16 @@ interface ActivityState {
     name: string,
     date: string,
     location: string,
-    description?: string
+    description?: string,
+    activityPositions?: { positionId: string; quantity: number }[]
   ) => Promise<void>;
   setActiveActivity: (activity: Activity | null) => void;
   getActivityDetails: (id: string) => Promise<void>;
   deleteActivity: (id: string, semesterId: string) => Promise<void>;
+  
+  // Assignment Actions
+  assignMember: (activityId: string, positionId: string, userId: string) => Promise<void>;
+  removeAssignment: (assignmentId: string, activityId: string) => Promise<void>;
 }
 
 export const useActivityStore = create<ActivityState>((set, get) => ({
@@ -40,7 +46,7 @@ export const useActivityStore = create<ActivityState>((set, get) => ({
     }
   },
 
-  createActivity: async (semesterId, name, date, location, description) => {
+  createActivity: async (semesterId, name, date, location, description, activityPositions) => {
     set({ isLoading: true, error: null });
     try {
       await activityService.create({
@@ -49,6 +55,7 @@ export const useActivityStore = create<ActivityState>((set, get) => ({
         date,
         location,
         description,
+        activityPositions,
       });
       // Refresh list
       await get().fetchSemesterActivities(semesterId);
@@ -93,4 +100,34 @@ export const useActivityStore = create<ActivityState>((set, get) => ({
       throw error;
     }
   },
+
+  assignMember: async (activityId, positionId, userId) => {
+      set({ isLoading: true, error: null });
+      try {
+          await assignmentService.create({ activityId, positionId, userId });
+          // Refresh details to show new assignment
+          await get().getActivityDetails(activityId);
+      } catch (error: any) {
+           set({
+            error: error.response?.data?.message || "Error al asignar miembro",
+            isLoading: false,
+          });
+          throw error;
+      }
+  },
+
+  removeAssignment: async (assignmentId, activityId) => {
+      set({ isLoading: true, error: null });
+      try {
+          await assignmentService.delete(assignmentId);
+           // Refresh details
+           await get().getActivityDetails(activityId);
+      } catch (error: any) {
+          set({
+            error: error.response?.data?.message || "Error al eliminar asignación",
+            isLoading: false,
+          });
+          throw error;
+      }
+  }
 }));

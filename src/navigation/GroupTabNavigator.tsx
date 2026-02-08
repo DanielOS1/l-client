@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text } from 'react-native';
 import { Home, Calendar, Handshake, Target, Bell } from 'lucide-react-native';
 import { GroupDetailScreen } from '../modules/group/screens/GroupDetailScreen';
+import { SemestersListScreen } from '../modules/semester/screens/SemestersListScreen';
 import { useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -62,7 +63,7 @@ export function GroupTabNavigator() {
             />
             <Tab.Screen
                 name="TabActivities"
-                component={ActivitiesScreen}
+                component={SemestersListScreen}
                 initialParams={{ groupId }}
                 options={{
                     tabBarLabel: 'Actividades',

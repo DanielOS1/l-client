@@ -18,6 +18,7 @@ export const activityService = {
     date: string;
     location: string;
     description?: string;
+    activityPositions?: { positionId: string; quantity: number }[];
   }): Promise<Activity> => {
     const response = await api.post<ApiResponse<Activity>>("/activity", data);
     return response.data.data;

@@ -16,6 +16,14 @@ export interface Position {
   description?: string;
 }
 
+export interface ActivityPosition {
+  id: string;
+  activityId: string;
+  positionId: string;
+  quantity: number;
+  position?: Position;
+}
+
 export interface Activity {
   id: string;
   name: string;
@@ -23,6 +31,7 @@ export interface Activity {
   description?: string;
   location: string;
   assignments?: Assignment[];
+  activityPositions?: ActivityPosition[];
 }
 
 export interface Assignment {

@@ -38,6 +38,7 @@ export const groupService = {
     groupId: string;
     name: string;
     description?: string;
+    level: number;
   }): Promise<any> => {
     const response = await api.post<ApiResponse<any>>("/group-roles", data);
     return response.data.data;
