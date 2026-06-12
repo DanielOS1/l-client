@@ -28,6 +28,15 @@ export const semesterService = {
     return response.data.data;
   },
 
+  // Update semester
+  update: async (
+    id: string,
+    data: { name?: string; startDate?: string; endDate?: string; isActive?: boolean }
+  ): Promise<Semester> => {
+    const response = await api.patch<ApiResponse<Semester>>(`/semester/${id}`, data);
+    return response.data.data;
+  },
+
   // Delete semester
   delete: async (id: string): Promise<void> => {
     await api.delete<ApiResponse<void>>(`/semester/${id}`);

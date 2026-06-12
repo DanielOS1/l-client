@@ -4,6 +4,12 @@ import Constants from "expo-constants";
 
 import { API_URL as ENV_API_URL } from "@env";
 
+// Callback registrado desde App.tsx para evitar dependencia circular (api → store → service → api)
+let _logoutFn: (() => void) | null = null;
+export const setAuthLogout = (fn: () => void) => {
+  _logoutFn = fn;
+};
+
 /**
  * Dynamically determines the API URL.
  * - Uses .env file if available (PRIMARY).
@@ -51,8 +57,11 @@ api.interceptors.request.use(async (config) => {
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    // Optional: Handle 401 Unauthorized globally (e.g. logout)
+  async (error) => {
+    if (error.response?.status === 401) {
+      await SecureStore.deleteItemAsync("auth_token");
+      _logoutFn?.();
+    }
     return Promise.reject(error);
   },
 );

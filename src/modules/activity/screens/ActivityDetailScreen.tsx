@@ -13,7 +13,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { useActivityStore } from "../../../store/useActivityStore";
 import { useGroupStore } from "../../../store/useGroupStore";
 import { Button } from "../../../components/Button";
-import { MapPin, Calendar, Users, DollarSign, Plus, Trash2, X, UserPlus } from "lucide-react-native";
+import { MapPin, Calendar, Users, DollarSign, Trash2, X, UserPlus, Pencil, ChevronLeft } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityPosition } from "../../../types/operations.types";
 import { useAuthStore } from "../../../store/useAuthStore";
@@ -21,9 +21,9 @@ import { ROLE_LEVELS } from "../../../constants/role-levels";
 
 export function ActivityDetailScreen() {
   const route = useRoute<any>();
-  const navigation = useNavigation();
-  const { activityId } = route.params;
-  const { activeActivity, getActivityDetails, isLoading, assignMember, removeAssignment } = useActivityStore();
+  const navigation = useNavigation<any>();
+  const { activityId, semesterId } = route.params;
+  const { activeActivity, getActivityDetails, isLoading, assignMember, removeAssignment, deleteActivity } = useActivityStore();
   const { activeGroup } = useGroupStore();
   const { user } = useAuthStore();
 
@@ -85,6 +85,28 @@ export function ActivityDetailScreen() {
     }
   };
 
+  const handleDeleteActivity = () => {
+    Alert.alert(
+      "Eliminar Actividad",
+      "¿Estás seguro? Esta acción no se puede deshacer.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteActivity(activeActivity!.id, semesterId);
+              navigation.goBack();
+            } catch {
+              Alert.alert("Error", "No se pudo eliminar la actividad.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleRemoveAssignment = async (assignmentId: string) => {
     Alert.alert(
       "Confirmar",
@@ -120,7 +142,38 @@ export function ActivityDetailScreen() {
           />
         }
       >
-        <View className="bg-white p-6 pb-8 rounded-b-3xl shadow-sm mb-4">
+        {/* Header with back + actions */}
+        <View className="bg-white px-4 pt-4 pb-2 flex-row items-center justify-between">
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            className="p-1"
+          >
+            <ChevronLeft size={24} color="#1e293b" />
+          </TouchableOpacity>
+          {canManage && (
+            <View className="flex-row gap-2">
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate("EditActivity", {
+                    activityId: activeActivity.id,
+                    semesterId,
+                  })
+                }
+                className="p-2 bg-amber-50 rounded-xl"
+              >
+                <Pencil size={20} color="#d97706" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleDeleteActivity}
+                className="p-2 bg-red-50 rounded-xl"
+              >
+                <Trash2 size={20} color="#ef4444" />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        <View className="bg-white px-6 pb-8 rounded-b-3xl shadow-sm mb-4">
           <Text className="text-3xl font-bold text-slate-900 mb-2">
             {activeActivity.name}
           </Text>
@@ -129,7 +182,7 @@ export function ActivityDetailScreen() {
             <View className="flex-row items-center gap-2">
               <Calendar size={18} color="#64748b" />
               <Text className="text-slate-600 text-base">
-                {new Date(activeActivity.date).toLocaleDateString()}
+                {new Date(activeActivity.date.includes("T") ? activeActivity.date : activeActivity.date + "T12:00:00").toLocaleDateString("es-CL", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
               </Text>
             </View>
             <View className="flex-row items-center gap-2">
@@ -154,7 +207,7 @@ export function ActivityDetailScreen() {
             </View>
             <View className="h-2 bg-slate-100 rounded-full overflow-hidden">
               <View
-                className="h-full bg-blue-600 rounded-full"
+                className="h-full bg-brand-teal rounded-full"
                 style={{ width: `${Math.min(progress * 100, 100)}%` }}
               />
             </View>
@@ -179,10 +232,10 @@ export function ActivityDetailScreen() {
                     {canManage && !isFull && (
                       <TouchableOpacity
                         onPress={() => handleOpenAssignModal(ap)}
-                        className="bg-blue-50 px-3 py-2 rounded-lg flex-row items-center"
+                        className="bg-brand-teal-light px-3 py-2 rounded-lg flex-row items-center"
                       >
-                        <UserPlus size={16} color="#2563EB" className="mr-1" />
-                        <Text className="text-blue-700 font-bold text-xs">Asignar</Text>
+                        <UserPlus size={16} color="#3AC4BE" className="mr-1" />
+                        <Text className="text-brand-teal font-bold text-xs">Asignar</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -193,8 +246,8 @@ export function ActivityDetailScreen() {
                       {assignmentsForPos.map(assignment => (
                         <View key={assignment.id} className="flex-row items-center justify-between bg-slate-50 p-2 rounded-lg">
                           <View className="flex-row items-center">
-                            <View className="w-8 h-8 bg-blue-200 rounded-full items-center justify-center mr-2">
-                              <Text className="text-blue-800 font-bold text-xs">
+                            <View className="w-8 h-8 bg-brand-teal-light rounded-full items-center justify-center mr-2">
+                              <Text className="text-brand-teal font-bold text-xs">
                                 {assignment.user.firstName?.charAt(0) || "U"}
                                 {assignment.user.lastName?.charAt(0) || ""}
                               </Text>
@@ -224,7 +277,7 @@ export function ActivityDetailScreen() {
 
         <View className="p-4 flex-row gap-3">
           <View className="flex-1 bg-white p-4 rounded-xl border border-slate-100 items-center">
-            <Users size={24} color="#2563EB" className="mb-2" />
+            <Users size={24} color="#3AC4BE" className="mb-2" />
             <Text className="text-slate-500 text-xs font-bold uppercase">
               Asistentes
             </Text>

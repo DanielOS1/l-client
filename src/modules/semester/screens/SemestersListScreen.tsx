@@ -51,8 +51,8 @@ export function SemestersListScreen() {
         <View className="flex-row items-center mt-1">
           <Calendar size={14} color="#64748b" />
           <Text className="text-slate-500 text-sm ml-1">
-            {new Date(item.startDate).toLocaleDateString()} -{" "}
-            {new Date(item.endDate).toLocaleDateString()}
+            {new Date(item.startDate + (item.startDate.includes('T') ? '' : 'T12:00:00')).toLocaleDateString('es-CL')} -{" "}
+            {new Date(item.endDate + (item.endDate.includes('T') ? '' : 'T12:00:00')).toLocaleDateString('es-CL')}
           </Text>
         </View>
         {item.isActive && (
@@ -74,7 +74,7 @@ export function SemestersListScreen() {
               onPress={() => navigation.navigate("CreateSemester", { groupId })}
               variant="ghost"
               className="h-10 px-3"
-              icon={<Plus size={20} color="#2563EB" />}
+              icon={<Plus size={20} color="#3AC4BE" />}
             />
           )}
         </View>

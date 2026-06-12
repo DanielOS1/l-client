@@ -131,14 +131,14 @@ export function CreateGroupRoleScreen() {
                   <TouchableOpacity
                     key={option.value}
                     onPress={() => !isDisabled && setLevel(option.value.toString())}
-                    className={`p-3 rounded-xl border flex-row items-center flex-1 min-w-[45%] ${isSelected ? 'bg-blue-50 border-blue-500' : 'bg-white border-slate-200'} ${isDisabled ? 'opacity-50' : ''}`}
+                    className={`p-3 rounded-xl border flex-row items-center flex-1 min-w-[45%] ${isSelected ? 'bg-brand-teal-light border-brand-teal' : 'bg-white border-slate-200'} ${isDisabled ? 'opacity-50' : ''}`}
                     disabled={isDisabled}
                   >
                     <View className={`w-8 h-8 rounded-full items-center justify-center mr-2`} style={{ backgroundColor: isSelected ? '#dbeafe' : '#f1f5f9' }}>
-                      <Icon size={16} color={isSelected ? '#2563EB' : '#64748b'} />
+                      <Icon size={16} color={isSelected ? '#3AC4BE' : '#64748b'} />
                     </View>
                     <View>
-                      <Text className={`font-bold ${isSelected ? 'text-blue-700' : 'text-slate-700'}`}>{option.label}</Text>
+                      <Text className={`font-bold ${isSelected ? 'text-brand-teal' : 'text-slate-700'}`}>{option.label}</Text>
                       <Text className="text-xs text-slate-400">Nivel {option.value}</Text>
                     </View>
                   </TouchableOpacity>

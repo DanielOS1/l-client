@@ -20,8 +20,13 @@ interface ActivityState {
   ) => Promise<void>;
   setActiveActivity: (activity: Activity | null) => void;
   getActivityDetails: (id: string) => Promise<void>;
-  deleteActivity: (id: string, semesterId: string) => Promise<void>;
-  
+  deleteActivity: (id: string, semesterId?: string) => Promise<void>;
+  updateActivity: (
+    id: string,
+    semesterId: string,
+    data: { name?: string; date?: string; location?: string; description?: string }
+  ) => Promise<void>;
+
   // Assignment Actions
   assignMember: (activityId: string, positionId: string, userId: string) => Promise<void>;
   removeAssignment: (assignmentId: string, activityId: string) => Promise<void>;
@@ -87,11 +92,26 @@ export const useActivityStore = create<ActivityState>((set, get) => ({
     }
   },
 
-  deleteActivity: async (id: string, semesterId: string) => {
+  updateActivity: async (id, semesterId, data) => {
+    set({ isLoading: true, error: null });
+    try {
+      const updated = await activityService.update(id, data);
+      set({ activeActivity: updated, isLoading: false });
+      if (semesterId) await get().fetchSemesterActivities(semesterId);
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Error al actualizar actividad",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  deleteActivity: async (id: string, semesterId?: string) => {
     set({ isLoading: true, error: null });
     try {
       await activityService.delete(id);
-      await get().fetchSemesterActivities(semesterId);
+      if (semesterId) await get().fetchSemesterActivities(semesterId);
     } catch (error: any) {
       set({
         error: error.response?.data?.message || "Error al eliminar actividad",

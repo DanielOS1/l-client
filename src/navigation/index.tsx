@@ -1,25 +1,15 @@
 import React, { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import { useAuthStore } from "../store/useAuthStore";
 import { LoginScreen } from "../modules/auth/screens/LoginScreen";
 import { RegisterScreen } from "../modules/auth/screens/RegisterScreen";
-import { Button } from "../components/Button";
 
 import { GroupsListScreen } from "../modules/group/screens/GroupsListScreen";
 import { GroupTabNavigator } from "./GroupTabNavigator";
-
 import { CreateGroupScreen } from "../modules/group/screens/CreateGroupScreen";
-import { CreateGroupRoleScreen } from "../modules/group/screens/CreateGroupRoleScreen";
-import { AddMemberScreen } from "../modules/group/screens/AddMemberScreen";
-import { GroupRolesListScreen } from "../modules/group/screens/GroupRolesListScreen";
-import { SemestersListScreen } from "../modules/semester/screens/SemestersListScreen";
-import { CreateSemesterScreen } from "../modules/semester/screens/CreateSemesterScreen";
-import { SemesterDetailScreen } from "../modules/semester/screens/SemesterDetailScreen";
-import { CreateActivityScreen } from "../modules/activity/screens/CreateActivityScreen";
-import { ActivityDetailScreen } from "../modules/activity/screens/ActivityDetailScreen";
-import { ManagePositionsScreen } from "../modules/semester/screens/ManagePositionsScreen";
+import { UserProfileScreen } from "../modules/auth/screens/UserProfileScreen";
 
 const Stack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
@@ -43,7 +33,7 @@ export function RootNavigator() {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color="#3AC4BE" />
       </View>
     );
   }
@@ -56,37 +46,7 @@ export function RootNavigator() {
             <Stack.Screen name="GroupsList" component={GroupsListScreen} />
             <Stack.Screen name="GroupTabs" component={GroupTabNavigator} />
             <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
-            <Stack.Screen
-              name="CreateGroupRole"
-              component={CreateGroupRoleScreen}
-            />
-            <Stack.Screen name="AddMember" component={AddMemberScreen} />
-            <Stack.Screen name="GroupRolesList" component={GroupRolesListScreen} />
-
-            <Stack.Screen
-              name="SemestersList"
-              component={SemestersListScreen}
-            />
-            <Stack.Screen
-              name="CreateSemester"
-              component={CreateSemesterScreen}
-            />
-            <Stack.Screen
-              name="SemesterDetail"
-              component={SemesterDetailScreen}
-            />
-            <Stack.Screen
-              name="CreateActivity"
-              component={CreateActivityScreen}
-            />
-            <Stack.Screen
-              name="ActivityDetail"
-              component={ActivityDetailScreen}
-            />
-            <Stack.Screen
-              name="ManagePositions"
-              component={ManagePositionsScreen}
-            />
+            <Stack.Screen name="UserProfile" component={UserProfileScreen} />
           </>
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />

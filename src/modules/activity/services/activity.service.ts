@@ -30,6 +30,15 @@ export const activityService = {
     return response.data.data;
   },
 
+  // Update activity
+  update: async (
+    id: string,
+    data: { name?: string; date?: string; location?: string; description?: string }
+  ): Promise<Activity> => {
+    const response = await api.patch<ApiResponse<Activity>>(`/activity/${id}`, data);
+    return response.data.data;
+  },
+
   // Delete activity
   delete: async (id: string): Promise<void> => {
     await api.delete<ApiResponse<void>>(`/activity/${id}`);

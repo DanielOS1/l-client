@@ -4,10 +4,10 @@ import {
   Text,
   SafeAreaView,
   ScrollView,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
@@ -31,8 +31,12 @@ export function RegisterScreen() {
   };
 
   const handleRegister = async () => {
+    if (!form.firstName || !form.lastName || !form.email || !form.rut || !form.password) {
+      Toast.show({ type: "error", text1: "Completa todos los campos" });
+      return;
+    }
     if (form.password !== form.confirmPassword) {
-      Alert.alert("Error", "Las contraseñas no coinciden");
+      Toast.show({ type: "error", text1: "Las contraseñas no coinciden" });
       return;
     }
 
@@ -44,11 +48,13 @@ export function RegisterScreen() {
         password: form.password,
         rut: form.rut,
       });
+      Toast.show({ type: "success", text1: "¡Cuenta creada!", text2: "Bienvenido a Lolos App." });
     } catch (e: any) {
-      Alert.alert(
-        "Error",
-        e.response?.data?.message || "Error al crear cuenta"
-      );
+      Toast.show({
+        type: "error",
+        text1: "Error al registrarse",
+        text2: e.response?.data?.message || "Intenta nuevamente.",
+      });
     }
   };
 

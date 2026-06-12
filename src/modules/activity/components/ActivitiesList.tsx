@@ -70,7 +70,7 @@ export function ActivitiesList({ semesterId }: ActivitiesListProps) {
           onPress={() => navigation.navigate("CreateActivity", { semesterId })}
           variant="ghost"
           className="h-9 px-3"
-          icon={<Plus size={18} color="#2563EB" />}
+          icon={<Plus size={18} color="#3AC4BE" />}
         />
       </View>
 

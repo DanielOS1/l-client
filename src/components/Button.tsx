@@ -28,7 +28,7 @@ export function Button({
     "h-14 rounded-2xl flex-row items-center justify-center px-4";
 
   const variants = {
-    primary: "bg-blue-600 active:bg-blue-700",
+    primary: "bg-brand-teal active:bg-brand-teal-dark",
     secondary: "bg-slate-200 active:bg-slate-300",
     outline: "bg-transparent border-2 border-slate-200 active:bg-slate-50",
     ghost: "bg-transparent active:bg-slate-100",
@@ -38,7 +38,7 @@ export function Button({
     primary: "text-white font-bold text-lg",
     secondary: "text-slate-700 font-bold text-lg",
     outline: "text-slate-600 font-bold text-lg",
-    ghost: "text-blue-600 font-semibold text-base",
+    ghost: "text-brand-teal font-semibold text-base",
   };
 
   return (

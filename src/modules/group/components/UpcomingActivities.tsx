@@ -57,10 +57,13 @@ export function UpcomingActivities({ groupId }: { groupId: string }) {
                 <Text className="text-lg font-bold text-slate-800">Próximas Actividades</Text>
                 <TouchableOpacity onPress={() => {
                     if (activeSemester?.id) {
-                        navigation.navigate("SemesterDetail", { semesterId: activeSemester.id });
+                        navigation.navigate("TabActivities", {
+                            screen: "SemesterDetail",
+                            params: { semesterId: activeSemester.id },
+                        });
                     }
                 }}>
-                    <Text className="text-blue-600 font-medium text-sm">Ver todas</Text>
+                    <Text className="text-brand-teal font-medium text-sm">Ver todas</Text>
                 </TouchableOpacity>
             </View>
 
@@ -80,13 +83,16 @@ export function UpcomingActivities({ groupId }: { groupId: string }) {
                             key={activity.id}
                             style={{ backgroundColor: "white", borderRadius: 16, marginRight: 12, width: 280 }}
                             mode="elevated"
-                            onPress={() => navigation.navigate("ActivityDetail", { activityId: activity.id })}
+                            onPress={() => navigation.navigate("TabActivities", {
+                                screen: "ActivityDetail",
+                                params: { activityId: activity.id },
+                            })}
                         >
                             <Card.Content className="p-4">
                                 <View className="flex-row gap-4">
-                                    <View className="bg-blue-50 rounded-xl items-center justify-center w-16 h-16">
-                                        <Text className="text-blue-600 font-bold text-xl">{day}</Text>
-                                        <Text className="text-blue-400 text-xs font-bold">{month}</Text>
+                                    <View className="bg-brand-teal-light rounded-xl items-center justify-center w-16 h-16">
+                                        <Text className="text-brand-teal font-bold text-xl">{day}</Text>
+                                        <Text className="text-[#3AC4BE] text-xs font-bold">{month}</Text>
                                     </View>
                                     <View className="flex-1 justify-center">
                                         <Text className="text-slate-800 font-bold text-base numberOfLines={1}">{activity.name}</Text>
@@ -103,7 +109,7 @@ export function UpcomingActivities({ groupId }: { groupId: string }) {
                                 <View className="mt-4">
                                     <View className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                         <View
-                                            className="h-full bg-blue-600 rounded-full"
+                                            className="h-full bg-brand-teal rounded-full"
                                             style={{ width: `${Math.min(progress * 100, 100)}%` }}
                                         />
                                     </View>

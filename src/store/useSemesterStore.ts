@@ -18,6 +18,11 @@ interface SemesterState {
   setActiveSemester: (semester: Semester | null) => void;
   getSemesterDetails: (id: string) => Promise<void>;
   deleteSemester: (id: string, groupId: string) => Promise<void>;
+  updateSemester: (
+    id: string,
+    groupId: string,
+    data: { name?: string; startDate?: string; endDate?: string; isActive?: boolean }
+  ) => Promise<void>;
 }
 
 export const useSemesterStore = create<SemesterState>((set, get) => ({
@@ -70,6 +75,21 @@ export const useSemesterStore = create<SemesterState>((set, get) => ({
           "Error al obtener detalles del semestre",
         isLoading: false,
       });
+    }
+  },
+
+  updateSemester: async (id, groupId, data) => {
+    set({ isLoading: true, error: null });
+    try {
+      const updated = await semesterService.update(id, data);
+      set({ activeSemester: updated });
+      await get().fetchGroupSemesters(groupId);
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Error al actualizar semestre",
+        isLoading: false,
+      });
+      throw error;
     }
   },
 

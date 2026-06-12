@@ -9,13 +9,11 @@ interface GroupState {
   error: string | null;
 
   fetchUserGroups: (userId: string) => Promise<void>;
-  createGroup: (
-    name: string,
-    description: string,
-    userId: string
-  ) => Promise<void>;
+  createGroup: (name: string, description: string, userId: string) => Promise<void>;
   setActiveGroup: (group: Group | null) => void;
   getGroupDetails: (groupId: string) => Promise<void>;
+  assignRole: (groupId: string, userId: string, roleId: string) => Promise<void>;
+  removeMember: (groupId: string, userId: string) => Promise<void>;
 }
 
 export const useGroupStore = create<GroupState>((set, get) => ({
@@ -69,11 +67,38 @@ export const useGroupStore = create<GroupState>((set, get) => ({
       set({ activeGroup: group, isLoading: false });
     } catch (error: any) {
       set({
-        error:
-          error.response?.data?.message ||
-          "Error al obtener detalles del grupo",
+        error: error.response?.data?.message || "Error al obtener detalles del grupo",
         isLoading: false,
       });
+    }
+  },
+
+  assignRole: async (groupId: string, userId: string, roleId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const group = await groupService.assignRole(groupId, userId, roleId);
+      set({ activeGroup: group, isLoading: false });
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Error al asignar rol",
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  removeMember: async (groupId: string, userId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await groupService.removeMember(groupId, userId);
+      const group = await groupService.getById(groupId);
+      set({ activeGroup: group, isLoading: false });
+    } catch (error: any) {
+      set({
+        error: error.response?.data?.message || "Error al remover miembro",
+        isLoading: false,
+      });
+      throw error;
     }
   },
 }));

@@ -84,7 +84,7 @@ export function DatePicker({
         <Text
           className={`text-base ${value ? "text-slate-900" : "text-slate-400"}`}
         >
-          {value ? new Date(value).toLocaleDateString() : placeholder}
+          {value ? new Date(value + 'T12:00:00').toLocaleDateString('es-CL') : placeholder}
         </Text>
         <CalendarIcon size={20} color="#64748b" />
       </TouchableOpacity>
@@ -112,9 +112,9 @@ export function DatePicker({
                   minDate={minDate}
                   maxDate={maxDate}
                   theme={{
-                    selectedDayBackgroundColor: "#2563EB",
-                    todayTextColor: "#2563EB",
-                    arrowColor: "#2563EB",
+                    selectedDayBackgroundColor: "#3AC4BE",
+                    todayTextColor: "#3AC4BE",
+                    arrowColor: "#3AC4BE",
                   }}
                   markedDates={{
                     [value]: { selected: true, disableTouchEvent: true },

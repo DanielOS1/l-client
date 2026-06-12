@@ -5,34 +5,31 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useGroupStore } from "../../../store/useGroupStore";
+import { useAuthStore } from "../../../store/useAuthStore";
 import { Button } from "../../../components/Button";
 import {
   Users,
-  Shield,
-  UserPlus,
   Calendar,
-  ClipboardList,
-  TrendingUp,
-  ArrowRight,
   ChevronLeft,
   Target,
-  Clock
+  Clock,
+  LogOut,
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Card } from "react-native-paper";
 import { goalService, Goal } from "../../finance/services/goal.service";
 import { ROLE_LEVELS } from "../../../constants/role-levels";
-import { useAuthStore } from "../../../store/useAuthStore";
 import { UpcomingActivities } from "../components/UpcomingActivities";
 
 const SummaryCard = ({
   icon: Icon,
   label,
   value,
-  color = "#2563EB",
+  color = "#3AC4BE",
   bgColor = "#DBEAFE",
 }: {
   icon: any;
@@ -61,7 +58,7 @@ export function GroupDetailScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { groupId } = route.params;
-  const { activeGroup, getGroupDetails, isLoading } = useGroupStore();
+  const { activeGroup, getGroupDetails, removeMember, isLoading } = useGroupStore();
   const { user } = useAuthStore();
   const [activeGoal, setActiveGoal] = useState<Goal | null>(null);
 
@@ -88,8 +85,26 @@ export function GroupDetailScreen() {
     }
   };
 
-  const handleCreateRole = () => {
-    navigation.navigate("CreateGroupRole", { groupId });
+  const handleLeaveGroup = () => {
+    Alert.alert(
+      "Salirse del Grupo",
+      `¿Seguro que quieres salir de "${activeGroup?.name}"?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Salir",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await removeMember(groupId, user!.id);
+              navigation.navigate("GroupsList");
+            } catch {
+              Alert.alert("Error", "No se pudo salir del grupo.");
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (!activeGroup && isLoading) {
@@ -153,8 +168,8 @@ export function GroupDetailScreen() {
                 icon={Calendar}
                 value={activeGroup.semesters?.length?.toString() || "0"}
                 label="Semestres"
-                color="#2563EB"
-                bgColor="#DBEAFE"
+                color="#3AC4BE"
+                bgColor="#d0f5f3"
               />
             </View>
             <View className="w-1/2 p-1">
@@ -189,30 +204,6 @@ export function GroupDetailScreen() {
           {/* Upcoming Activities Section */}
           <UpcomingActivities groupId={groupId} />
 
-          {/* Mis Compromisos Section */}
-          <View className="mt-6 px-2">
-            <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-lg font-bold text-slate-800">Mis Compromisos</Text>
-              <TouchableOpacity>
-                <Text className="text-blue-600 font-medium text-sm">Ver todos</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Card style={{ backgroundColor: "white", borderRadius: 16 }} mode="elevated">
-              <Card.Content className="flex-row items-center p-4">
-                <View className="bg-blue-100 w-12 h-12 rounded-xl items-center justify-center mr-4">
-                  <ClipboardList size={24} color="#2563EB" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-slate-800 font-bold text-base">Taller de Liderazgo</Text>
-                  <Text className="text-slate-500 text-sm">Apoyo Logístico</Text>
-                </View>
-                <ArrowRight size={20} color="#94a3b8" />
-              </Card.Content>
-            </Card>
-          </View>
-
-          {/* Legacy Sections (Roles & Miembros) - Kept below for functionality */}
           {canManageMembers && (
             <View className="mt-8 px-2 space-y-6">
               <View>
@@ -225,19 +216,32 @@ export function GroupDetailScreen() {
                     onPress={() => navigation.navigate("GroupRolesList", { groupId })}
                   />
                   <Button
-                    title="Gestionar Semestres"
+                    title="Semestres"
                     variant="secondary"
                     className="flex-1 min-w-[45%]"
-                    onPress={() => navigation.navigate("SemestersList", { groupId })}
+                    onPress={() => navigation.navigate("TabActivities")}
                   />
                   <Button
                     title="Agregar Miembro"
-                    variant="primary" // Highlight this action
+                    variant="primary"
                     className="w-full mt-2"
                     onPress={() => navigation.navigate("AddMember", { groupId })}
                   />
                 </View>
               </View>
+            </View>
+          )}
+
+          {/* Leave group (for non-admin members only) */}
+          {!canManageMembers && (
+            <View className="mt-8 px-2">
+              <TouchableOpacity
+                onPress={handleLeaveGroup}
+                className="flex-row items-center justify-center py-3 border border-red-200 rounded-xl bg-red-50"
+              >
+                <LogOut size={18} color="#ef4444" />
+                <Text className="text-red-600 font-bold ml-2">Salirse del Grupo</Text>
+              </TouchableOpacity>
             </View>
           )}
 

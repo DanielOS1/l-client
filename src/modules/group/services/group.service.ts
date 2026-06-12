@@ -60,11 +60,28 @@ export const groupService = {
   ): Promise<any> => {
     const response = await api.post<ApiResponse<any>>(
       `/groups/${groupId}/add-member`,
-      {
-        userId,
-        assignedByUserId,
-      },
+      { userId, assignedByUserId },
     );
     return response.data.data;
+  },
+
+  // Assign a role to a member
+  assignRole: async (
+    groupId: string,
+    userId: string,
+    roleId: string,
+  ): Promise<any> => {
+    const response = await api.post<ApiResponse<any>>(
+      `/groups/${groupId}/assign-role`,
+      { userId, roleId },
+    );
+    return response.data.data;
+  },
+
+  // Remove a member from group
+  removeMember: async (groupId: string, userId: string): Promise<void> => {
+    await api.delete<ApiResponse<void>>(
+      `/groups/${groupId}/members/${userId}`,
+    );
   },
 };

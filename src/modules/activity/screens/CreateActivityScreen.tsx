@@ -137,6 +137,7 @@ export function CreateActivityScreen() {
                     value={sp.quantity.toString()}
                     onChangeText={(t) => updateQuantity(sp.positionId, t)}
                     keyboardType="numeric"
+                    selectTextOnFocus
                     containerClassName="w-16 mb-0"
                     className="h-8 py-0 text-center"
                   />
@@ -149,10 +150,10 @@ export function CreateActivityScreen() {
 
             <TouchableOpacity
               onPress={() => setShowPositionSelector(!showPositionSelector)}
-              className="flex-row items-center justify-center py-3 border border-dashed border-blue-300 rounded-lg bg-blue-50 mt-2"
+              className="flex-row items-center justify-center py-3 border border-dashed border-brand-teal/50 rounded-lg bg-brand-teal-light mt-2"
             >
-              <Plus size={20} color="#2563EB" className="mr-2" />
-              <Text className="text-blue-600 font-bold">Agregar Cargo</Text>
+              <Plus size={20} color="#3AC4BE" className="mr-2" />
+              <Text className="text-brand-teal font-bold">Agregar Cargo</Text>
             </TouchableOpacity>
 
             {/* Simple Dropdown/List for selection */}

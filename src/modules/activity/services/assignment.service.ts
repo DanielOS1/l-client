@@ -3,7 +3,6 @@ import { Assignment } from "../../../types/operations.types";
 import { ApiResponse } from "../../../types/api.types";
 
 export const assignmentService = {
-  // Create a new assignment
   create: async (data: {
     activityId: string;
     positionId: string;
@@ -14,8 +13,14 @@ export const assignmentService = {
     return response.data.data;
   },
 
-  // Delete an assignment
   delete: async (id: string): Promise<void> => {
     await api.delete<ApiResponse<void>>(`/assignment/${id}`);
+  },
+
+  getByUser: async (userId: string): Promise<Assignment[]> => {
+    const response = await api.get<ApiResponse<Assignment[]>>(
+      `/assignment?userId=${userId}`,
+    );
+    return response.data.data;
   },
 };

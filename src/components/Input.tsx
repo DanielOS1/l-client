@@ -25,7 +25,7 @@ export function Input({
         placeholderTextColor="#9CA3AF"
         className={twMerge(
           "w-full bg-gray-50 border border-gray-200 p-4 rounded-xl text-gray-900",
-          "focus:border-blue-500 focus:bg-white",
+          "focus:border-brand-teal focus:bg-white",
           error && "border-red-500 bg-red-50",
           className
         )}

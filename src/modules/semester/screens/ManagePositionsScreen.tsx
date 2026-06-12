@@ -117,7 +117,7 @@ export function ManagePositionsScreen() {
                 </View>
                 <View className="flex-row gap-4 ml-2">
                     <TouchableOpacity onPress={() => startEdit(item)}>
-                        <Edit2 size={20} color="#2563EB" />
+                        <Edit2 size={20} color="#3AC4BE" />
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => handleDelete(item.id)}>
                         <Trash2 size={20} color="#EF4444" />
@@ -138,7 +138,7 @@ export function ManagePositionsScreen() {
                 </View>
                 {!showForm && (
                     <TouchableOpacity onPress={() => setShowForm(true)}>
-                        <Plus size={24} color="#2563EB" />
+                        <Plus size={24} color="#3AC4BE" />
                     </TouchableOpacity>
                 )}
             </View>
