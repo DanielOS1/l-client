@@ -17,6 +17,8 @@ import { api } from "../../../services/api";
 import { ApiResponse } from "../../../types/api.types";
 import { User } from "../../../types";
 import { ChevronLeft, User as UserIcon } from "lucide-react-native";
+import * as SecureStore from "expo-secure-store";
+import Toast from "react-native-toast-message";
 
 export function UserProfileScreen() {
   const navigation = useNavigation<any>();
@@ -118,6 +120,19 @@ export function UserProfileScreen() {
             onPress={handleSave}
             isLoading={isLoading}
           />
+
+          {__DEV__ && (
+            <TouchableOpacity
+              onPress={async () => {
+                await SecureStore.deleteItemAsync("seen_notice_ids");
+                await SecureStore.deleteItemAsync("seen_asgn_ids");
+                Toast.show({ type: "success", text1: "[DEV] SecureStore reseteado", text2: "Vuelve a entrar al grupo para probar notificaciones" });
+              }}
+              style={{ marginTop: 24, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: "#fca5a5", alignItems: "center" }}
+            >
+              <Text style={{ color: "#ef4444", fontSize: 13, fontWeight: "600" }}>[DEV] Reset notificaciones vistas</Text>
+            </TouchableOpacity>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

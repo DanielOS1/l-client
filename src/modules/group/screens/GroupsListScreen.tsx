@@ -11,9 +11,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useGroupStore } from "../../../store/useGroupStore";
-import { Plus, LogOut, ChevronRight, Users, Calendar, Shield } from "lucide-react-native";
+import { Plus, LogOut, ChevronRight, Users, Calendar, Shield, Bell } from "lucide-react-native";
 import { AppLogo } from "../../../components/AppLogo";
 import { ROLE_LEVELS } from "../../../constants/role-levels";
+import { useNotificationStore } from "../../../store/useNotificationStore";
 
 function GroupCard({
   group,
@@ -137,8 +138,8 @@ function GroupCard({
 export function GroupsListScreen() {
   const navigation = useNavigation<any>();
   const { user, logout } = useAuthStore();
-  const { groups, fetchUserGroups, isLoading, setActiveGroup } =
-    useGroupStore();
+  const { groups, fetchUserGroups, isLoading, setActiveGroup } = useGroupStore();
+  const { unreadCount: notifCount } = useNotificationStore();
 
   useEffect(() => {
     if (user?.id) {
@@ -193,33 +194,30 @@ export function GroupsListScreen() {
           <AppLogo iconSize={36} showText={true} layout="row" />
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            {/* Bell — local notification inbox */}
+            <TouchableOpacity
+              onPress={() => navigation.navigate("NotificationsInbox")}
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: "#f1f5f9", alignItems: "center", justifyContent: "center" }}
+            >
+              <Bell size={18} color="#475569" />
+              {notifCount > 0 && (
+                <View style={{ position: "absolute", top: 0, right: 0, width: 16, height: 16, borderRadius: 8, backgroundColor: "#ef4444", alignItems: "center", justifyContent: "center" }}>
+                  <Text style={{ color: "#fff", fontSize: 9, fontWeight: "700" }}>{notifCount > 9 ? "9+" : notifCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => navigation.navigate("UserProfile")}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: "#e0f7f6",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: "#e0f7f6", alignItems: "center", justifyContent: "center" }}
             >
-              <Text
-                style={{ color: "#3AC4BE", fontWeight: "700", fontSize: 13 }}
-              >
+              <Text style={{ color: "#3AC4BE", fontWeight: "700", fontSize: 13 }}>
                 {initials}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleLogout}
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: "#f1f5f9",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: "#f1f5f9", alignItems: "center", justifyContent: "center" }}
             >
               <LogOut size={18} color="#475569" />
             </TouchableOpacity>

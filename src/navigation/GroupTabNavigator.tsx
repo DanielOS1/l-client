@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, Text } from 'react-native';
@@ -23,10 +23,17 @@ import { ManagePositionsScreen } from '../modules/semester/screens/ManagePositio
 
 // Other tabs
 import { CommitmentsScreen } from '../modules/semester/screens/CommitmentsScreen';
+import { AvisosScreen } from '../modules/notices/screens/AvisosScreen';
+import { CreateNoticeScreen } from '../modules/notices/screens/CreateNoticeScreen';
+import { NoticeDetailScreen } from '../modules/notices/screens/NoticeDetailScreen';
+import { useNoticeStore } from '../store/useNoticeStore';
+import { useNotificationStore } from '../store/useNotificationStore';
+import { useAuthStore } from '../store/useAuthStore';
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
 const ActivitiesStack = createNativeStackNavigator();
+const NoticesStack = createNativeStackNavigator();
 
 const PlaceholderScreen = ({ title }: { title: string }) => (
   <View className="flex-1 items-center justify-center bg-white p-4">
@@ -36,7 +43,16 @@ const PlaceholderScreen = ({ title }: { title: string }) => (
 );
 
 const GoalsScreen = () => <PlaceholderScreen title="Meta" />;
-const NoticesScreen = () => <PlaceholderScreen title="Avisos" />;
+
+function NoticesStackNavigator() {
+  return (
+    <NoticesStack.Navigator screenOptions={{ headerShown: false }}>
+      <NoticesStack.Screen name="Avisos" component={AvisosScreen} />
+      <NoticesStack.Screen name="CreateNotice" component={CreateNoticeScreen} />
+      <NoticesStack.Screen name="NoticeDetail" component={NoticeDetailScreen} />
+    </NoticesStack.Navigator>
+  );
+}
 
 // Nested stack for the Inicio tab — keeps tab bar visible through all admin flows
 function HomeStackNavigator() {
@@ -83,6 +99,15 @@ export function GroupTabNavigator() {
   const route = useRoute<any>();
   const { groupId } = route.params || {};
   const insets = useSafeAreaInsets();
+  const { unreadCount, checkForNewNotices } = useNoticeStore();
+  const { checkForNewAssignments } = useNotificationStore();
+  const { user } = useAuthStore();
+
+  useEffect(() => {
+    if (!groupId) return;
+    checkForNewNotices(groupId);
+    if (user?.id) checkForNewAssignments(user.id);
+  }, [groupId]);
 
   return (
     <Tab.Navigator
@@ -104,6 +129,13 @@ export function GroupTabNavigator() {
           fontSize: 10,
           fontWeight: '500',
           marginTop: 4,
+        },
+        tabBarBadgeStyle: {
+          backgroundColor: '#ef4444',
+          fontSize: 10,
+          minWidth: 16,
+          height: 16,
+          lineHeight: 16,
         },
       }}
     >
@@ -143,10 +175,11 @@ export function GroupTabNavigator() {
       />
       <Tab.Screen
         name="TabNotices"
-        component={NoticesScreen}
+        component={NoticesStackNavigator}
         options={{
           tabBarLabel: 'Avisos',
           tabBarIcon: ({ color }) => <Bell size={24} color={color} />,
+          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
         }}
       />
     </Tab.Navigator>

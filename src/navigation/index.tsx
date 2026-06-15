@@ -10,6 +10,7 @@ import { GroupsListScreen } from "../modules/group/screens/GroupsListScreen";
 import { GroupTabNavigator } from "./GroupTabNavigator";
 import { CreateGroupScreen } from "../modules/group/screens/CreateGroupScreen";
 import { UserProfileScreen } from "../modules/auth/screens/UserProfileScreen";
+import { NotificationsScreen } from "../modules/notifications/screens/NotificationsScreen";
 
 const Stack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
@@ -47,6 +48,7 @@ export function RootNavigator() {
             <Stack.Screen name="GroupTabs" component={GroupTabNavigator} />
             <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
             <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+            <Stack.Screen name="NotificationsInbox" component={NotificationsScreen} />
           </>
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />
