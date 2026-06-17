@@ -13,6 +13,7 @@ export interface AppNotification {
   type: NotificationType;
   title: string;
   body: string;
+  groupName?: string;
   assignmentId?: string;
   activityName?: string;
   positionName?: string;
@@ -27,7 +28,7 @@ interface NotificationStore {
   checkForNewAssignments: (userId: string, prefetched?: Assignment[]) => Promise<void>;
   markAllRead: () => void;
   clearAll: () => void;
-  addNotice: (notice: Pick<AppNotification, "title" | "body">) => void;
+  addNotice: (notice: Pick<AppNotification, "title" | "body" | "groupName">) => void;
 }
 
 // ─── SecureStore helpers ──────────────────────────────────────────────────────
@@ -147,6 +148,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       type: "notice",
       title: notice.title,
       body: notice.body,
+      groupName: notice.groupName,
       createdAt: Date.now(),
       isRead: false,
     };

@@ -44,6 +44,21 @@ export const groupService = {
     return response.data.data;
   },
 
+  // Update an existing role
+  updateRole: async (roleId: string, data: {
+    name?: string;
+    description?: string;
+    level?: number;
+  }): Promise<any> => {
+    const response = await api.patch<ApiResponse<any>>(`/group-roles/${roleId}`, data);
+    return response.data.data;
+  },
+
+  // Delete a role
+  deleteRole: async (roleId: string): Promise<void> => {
+    await api.delete<ApiResponse<void>>(`/group-roles/${roleId}`);
+  },
+
   // Search user by email
   searchUserByEmail: async (email: string): Promise<any> => {
     const response = await api.get<ApiResponse<any>>(

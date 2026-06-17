@@ -4,15 +4,14 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Alert,
   Modal,
   KeyboardAvoidingView,
   Platform,
+  StyleSheet,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useSemesterStore } from "../../../store/useSemesterStore";
 import { useActivityStore } from "../../../store/useActivityStore";
-import { Button } from "../../../components/Button";
 import { Input } from "../../../components/Input";
 import { DatePicker } from "../../../components/DatePicker";
 import { SemesterAgenda } from "../components/SemesterAgenda";
@@ -20,20 +19,27 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useGroupStore } from "../../../store/useGroupStore";
 import { ROLE_LEVELS } from "../../../constants/role-levels";
-import { Settings, Plus, Users, Pencil, X, ChevronLeft } from "lucide-react-native";
+import {
+  Plus,
+  Users,
+  Pencil,
+  X,
+  ChevronLeft,
+  Trash2,
+  Calendar,
+} from "lucide-react-native";
 import Toast from "react-native-toast-message";
+import { ConfirmModal } from "../../../components/ConfirmModal";
+
+function formatDate(str: string) {
+  return new Date(str + (str.includes("T") ? "" : "T12:00:00")).toLocaleDateString("es-CL");
+}
 
 export function SemesterDetailScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { semesterId } = route.params;
-  const {
-    activeSemester,
-    getSemesterDetails,
-    deleteSemester,
-    updateSemester,
-    isLoading,
-  } = useSemesterStore();
+  const { activeSemester, getSemesterDetails, deleteSemester, updateSemester, isLoading } = useSemesterStore();
   const { activities } = useActivityStore();
   const { user } = useAuthStore();
   const { activeGroup } = useGroupStore();
@@ -43,17 +49,13 @@ export function SemesterDetailScreen() {
   const [editStartDate, setEditStartDate] = useState("");
   const [editEndDate, setEditEndDate] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
 
-  const currentUserGroup = activeGroup?.userGroups?.find(
-    (ug) => ug.user.id === user?.id
-  );
-  const myLevel = currentUserGroup?.groupRole?.level || 0;
+  const myLevel = activeGroup?.userGroups?.find(ug => ug.user.id === user?.id)?.groupRole?.level || 0;
   const canManage = myLevel >= ROLE_LEVELS.ADMIN;
 
   useEffect(() => {
-    if (semesterId) {
-      getSemesterDetails(semesterId);
-    }
+    if (semesterId) getSemesterDetails(semesterId);
   }, [semesterId]);
 
   const openEditModal = () => {
@@ -85,138 +87,106 @@ export function SemesterDetailScreen() {
     }
   };
 
-  const handleDeleteSemester = () => {
-    Alert.alert(
-      "Eliminar Semestre",
-      `¿Eliminar "${activeSemester?.name}"? Se eliminarán también sus actividades y asignaciones.`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteSemester(activeSemester!.id, activeGroup!.id);
-              navigation.goBack();
-            } catch {
-              Alert.alert("Error", "No se pudo eliminar el semestre.");
-            }
-          },
-        },
-      ]
-    );
+  const handleDeleteConfirmed = async () => {
+    setDeleteConfirmVisible(false);
+    try {
+      await deleteSemester(activeSemester!.id, activeGroup!.id);
+      navigation.goBack();
+    } catch {
+      Toast.show({ type: "error", text1: "No se pudo eliminar el semestre" });
+    }
   };
-
-  const formatDate = (dateStr: string) =>
-    new Date(dateStr + (dateStr.includes("T") ? "" : "T12:00:00")).toLocaleDateString("es-CL");
 
   if (!activeSemester && isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <Text>Cargando...</Text>
+      <SafeAreaView style={s.centered}>
+        <Text style={s.loadingText}>Cargando...</Text>
       </SafeAreaView>
     );
   }
 
   if (!activeSemester) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <Text>Semestre no encontrado</Text>
-        <Button title="Volver" onPress={() => navigation.goBack()} variant="ghost" />
+      <SafeAreaView style={s.centered}>
+        <Text style={s.loadingText}>Semestre no encontrado</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.ghostBtn}>
+          <Text style={s.ghostBtnText}>Volver</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
-      <ScrollView>
-        <View className="bg-white p-6 pb-8 rounded-b-3xl shadow-sm mb-4">
-          {/* Back button */}
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            className="mb-4 self-start p-1 -ml-1"
-          >
-            <ChevronLeft size={24} color="#64748b" />
+    <SafeAreaView style={s.root}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+        {/* Hero header */}
+        <View style={s.heroCard}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
+            <ChevronLeft size={22} color="#64748b" />
           </TouchableOpacity>
 
-          <View className="flex-row justify-between items-start">
-            <View className="flex-1 mr-3">
-              <Text className="text-3xl font-bold text-slate-900 mb-2">
-                {activeSemester.name}
-              </Text>
-              <Text className="text-slate-500">
-                {formatDate(activeSemester.startDate)} —{" "}
-                {formatDate(activeSemester.endDate)}
-              </Text>
+          <View style={s.heroContent}>
+            <View style={s.heroLeft}>
+              <Text style={s.heroName}>{activeSemester.name}</Text>
+              <View style={s.heroDateRow}>
+                <Calendar size={13} color="#94a3b8" />
+                <Text style={s.heroDates}>
+                  {formatDate(activeSemester.startDate)} — {formatDate(activeSemester.endDate)}
+                </Text>
+              </View>
+              <View style={s.heroStats}>
+                <View style={s.heroStat}>
+                  <Text style={s.heroStatVal}>{activities.length}</Text>
+                  <Text style={s.heroStatLabel}>Actividades</Text>
+                </View>
+              </View>
             </View>
-            <View className={`px-3 py-1 rounded-full ${activeSemester.isActive ? "bg-green-100" : "bg-slate-100"}`}>
-              <Text className={`text-xs font-bold ${activeSemester.isActive ? "text-green-700" : "text-slate-500"}`}>
+            <View style={[s.statusBadge, activeSemester.isActive ? s.statusActive : s.statusInactive]}>
+              <Text style={[s.statusText, activeSemester.isActive ? s.statusActiveText : s.statusInactiveText]}>
                 {activeSemester.isActive ? "Activo" : "Finalizado"}
               </Text>
             </View>
           </View>
 
-          <View className="flex-row mt-4">
-            <View className="bg-brand-teal-light px-4 py-2 rounded-lg mr-2">
-              <Text className="text-brand-teal-dark font-bold">
-                {activities.length} Actividades
-              </Text>
-            </View>
-          </View>
-
           {canManage && (
-            <View className="mt-6 pt-4 border-t border-slate-100">
-              <Text className="text-sm font-bold text-slate-400 mb-3 uppercase tracking-wider">
-                Administración
-              </Text>
-              <View className="flex-row flex-wrap gap-2">
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate("CreateActivity", {
-                      semesterId: activeSemester.id,
-                    })
-                  }
-                  className="bg-brand-teal-light px-4 py-3 rounded-xl flex-row items-center"
-                >
-                  <Plus size={18} color="#3AC4BE" />
-                  <Text className="text-brand-teal font-bold ml-1">
-                    Nueva Actividad
-                  </Text>
-                </TouchableOpacity>
+            <View style={s.adminRow}>
+              <TouchableOpacity
+                style={s.adminChip}
+                onPress={() => navigation.navigate("CreateActivity", { semesterId: activeSemester.id })}
+              >
+                <Plus size={15} color="#3AC4BE" />
+                <Text style={[s.adminChipText, { color: "#3AC4BE" }]}>Nueva Actividad</Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate("ManagePositions", {
-                      semesterId: activeSemester.id,
-                    })
-                  }
-                  className="bg-indigo-50 px-4 py-3 rounded-xl flex-row items-center"
-                >
-                  <Users size={18} color="#4f46e5" />
-                  <Text className="text-indigo-700 font-bold ml-1">Cargos</Text>
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.adminChip, s.adminChipIndigo]}
+                onPress={() => navigation.navigate("ManagePositions", { semesterId: activeSemester.id })}
+              >
+                <Users size={15} color="#4f46e5" />
+                <Text style={[s.adminChipText, { color: "#4f46e5" }]}>Cargos</Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={openEditModal}
-                  className="bg-amber-50 px-4 py-3 rounded-xl flex-row items-center"
-                >
-                  <Pencil size={18} color="#d97706" />
-                  <Text className="text-amber-700 font-bold ml-1">Editar</Text>
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.adminChip, s.adminChipAmber]}
+                onPress={openEditModal}
+              >
+                <Pencil size={15} color="#d97706" />
+                <Text style={[s.adminChipText, { color: "#d97706" }]}>Editar</Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={handleDeleteSemester}
-                  className="bg-red-50 px-4 py-3 rounded-xl flex-row items-center"
-                >
-                  <Settings size={18} color="#ef4444" />
-                  <Text className="text-red-600 font-bold ml-1">Eliminar</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={[s.adminChip, s.adminChipRed]}
+                onPress={() => setDeleteConfirmVisible(true)}
+              >
+                <Trash2 size={15} color="#ef4444" />
+                <Text style={[s.adminChipText, { color: "#ef4444" }]}>Eliminar</Text>
+              </TouchableOpacity>
             </View>
           )}
         </View>
 
-        <View className="flex-1 min-h-[500px]">
+        {/* Agenda */}
+        <View style={{ minHeight: 500 }}>
           <SemesterAgenda
             semesterId={activeSemester.id}
             startDate={activeSemester.startDate.split("T")[0]}
@@ -227,53 +197,109 @@ export function SemesterDetailScreen() {
 
       {/* Edit Modal */}
       <Modal visible={editModalVisible} animationType="slide" transparent>
-        <View className="flex-1 bg-black/50 justify-end">
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : undefined}
-          >
-            <View className="bg-white rounded-t-3xl p-6">
-              <View className="flex-row justify-between items-center mb-6">
-                <Text className="text-xl font-bold text-slate-900">
-                  Editar Semestre
-                </Text>
-                <TouchableOpacity
-                  onPress={() => setEditModalVisible(false)}
-                  className="p-2 bg-slate-100 rounded-full"
-                >
-                  <X size={20} color="#64748b" />
-                </TouchableOpacity>
-              </View>
-
-              <Input
-                label="Nombre"
-                value={editName}
-                onChangeText={setEditName}
-                containerClassName="mb-4"
-              />
-
-              <DatePicker
-                label="Fecha de inicio"
-                value={editStartDate}
-                onDateSelect={setEditStartDate}
-              />
-
-              <DatePicker
-                label="Fecha de término"
-                value={editEndDate}
-                onDateSelect={setEditEndDate}
-                minDate={editStartDate}
-              />
-
-              <Button
-                title="Guardar Cambios"
-                onPress={handleSaveEdit}
-                isLoading={isSaving}
-                className="mt-4"
-              />
+        <KeyboardAvoidingView
+          style={s.modalOverlay}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <View style={s.modalSheet}>
+            <View style={s.modalHandle} />
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>Editar Semestre</Text>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)} style={s.modalClose}>
+                <X size={20} color="#64748b" />
+              </TouchableOpacity>
             </View>
-          </KeyboardAvoidingView>
-        </View>
+
+            <Input label="Nombre" value={editName} onChangeText={setEditName} containerClassName="mb-2" />
+            <DatePicker label="Fecha de inicio" value={editStartDate} onDateSelect={setEditStartDate} />
+            <DatePicker label="Fecha de término" value={editEndDate} onDateSelect={setEditEndDate} minDate={editStartDate} />
+
+            <TouchableOpacity
+              onPress={handleSaveEdit}
+              disabled={isSaving}
+              style={[s.saveBtn, isSaving && { opacity: 0.6 }]}
+            >
+              <Text style={s.saveBtnText}>{isSaving ? "Guardando..." : "Guardar Cambios"}</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
+
+      <ConfirmModal
+        visible={deleteConfirmVisible}
+        title="Eliminar semestre"
+        message={`¿Eliminar "${activeSemester.name}"?\n\nSe eliminarán también todas sus actividades y asignaciones.`}
+        confirmLabel="Eliminar"
+        variant="danger"
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => setDeleteConfirmVisible(false)}
+      />
     </SafeAreaView>
   );
 }
+
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#f8fafc" },
+  centered: { flex: 1, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" },
+  loadingText: { color: "#64748b", fontSize: 16 },
+  ghostBtn: { marginTop: 12, paddingVertical: 10, paddingHorizontal: 20 },
+  ghostBtnText: { color: "#3AC4BE", fontWeight: "700" },
+
+  heroCard: {
+    backgroundColor: "#ffffff",
+    borderBottomLeftRadius: 28, borderBottomRightRadius: 28,
+    padding: 20, paddingTop: 12, marginBottom: 4,
+    shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
+  },
+  backBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: "#f1f5f9", alignItems: "center", justifyContent: "center",
+    marginBottom: 16, alignSelf: "flex-start",
+  },
+  heroContent: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 },
+  heroLeft: { flex: 1, marginRight: 12 },
+  heroName: { fontSize: 24, fontWeight: "800", color: "#0f172a", marginBottom: 6 },
+  heroDateRow: { flexDirection: "row", alignItems: "center", gap: 5, marginBottom: 12 },
+  heroDates: { fontSize: 13, color: "#94a3b8" },
+  heroStats: { flexDirection: "row", gap: 16 },
+  heroStat: { alignItems: "flex-start" },
+  heroStatVal: { fontSize: 20, fontWeight: "800", color: "#0f172a" },
+  heroStatLabel: { fontSize: 11, color: "#94a3b8", fontWeight: "600" },
+  statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 100 },
+  statusActive: { backgroundColor: "#dcfce7" },
+  statusInactive: { backgroundColor: "#f1f5f9" },
+  statusText: { fontSize: 12, fontWeight: "800" },
+  statusActiveText: { color: "#16a34a" },
+  statusInactiveText: { color: "#64748b" },
+
+  adminRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  adminChip: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    backgroundColor: "#e0f7f6", paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100,
+  },
+  adminChipIndigo: { backgroundColor: "#eef2ff" },
+  adminChipAmber: { backgroundColor: "#fffbeb" },
+  adminChipRed: { backgroundColor: "#fff5f5" },
+  adminChipText: { fontSize: 13, fontWeight: "700" },
+
+  modalOverlay: { flex: 1, backgroundColor: "rgba(15,23,42,0.5)", justifyContent: "flex-end" },
+  modalSheet: {
+    backgroundColor: "#ffffff",
+    borderTopLeftRadius: 28, borderTopRightRadius: 28,
+    padding: 24, paddingBottom: 40,
+  },
+  modalHandle: {
+    width: 40, height: 4, backgroundColor: "#e2e8f0", borderRadius: 2,
+    alignSelf: "center", marginBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20,
+  },
+  modalTitle: { fontSize: 18, fontWeight: "800", color: "#0f172a" },
+  modalClose: { padding: 8, backgroundColor: "#f1f5f9", borderRadius: 20 },
+  saveBtn: {
+    backgroundColor: "#3AC4BE", borderRadius: 16, paddingVertical: 16,
+    alignItems: "center", marginTop: 16,
+  },
+  saveBtnText: { color: "#fff", fontSize: 16, fontWeight: "800" },
+});

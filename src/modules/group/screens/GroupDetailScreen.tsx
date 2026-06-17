@@ -5,54 +5,101 @@ import {
   ScrollView,
   RefreshControl,
   TouchableOpacity,
-  Alert,
+  StyleSheet,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useGroupStore } from "../../../store/useGroupStore";
 import { useAuthStore } from "../../../store/useAuthStore";
-import { Button } from "../../../components/Button";
 import {
   Users,
   Calendar,
   ChevronLeft,
   Target,
-  Clock,
+  ChevronRight,
+  UserPlus,
+  Shield,
   LogOut,
 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Card } from "react-native-paper";
 import { goalService, Goal } from "../../finance/services/goal.service";
 import { ROLE_LEVELS } from "../../../constants/role-levels";
 import { UpcomingActivities } from "../components/UpcomingActivities";
+import { ConfirmModal } from "../../../components/ConfirmModal";
 
-const SummaryCard = ({
+// ─── Stat card ────────────────────────────────────────────────────────────────
+
+function StatCard({
   icon: Icon,
   label,
   value,
-  color = "#3AC4BE",
-  bgColor = "#DBEAFE",
+  color,
+  bgColor,
+  onPress,
 }: {
   icon: any;
   label: string;
   value: string;
-  color?: string;
-  bgColor?: string;
-}) => (
-  <Card style={{ flex: 1, margin: 6, backgroundColor: "white", borderRadius: 16 }} mode="elevated">
-    <Card.Content className="p-4 flex-col justify-between h-32">
-      <View
-        style={{ backgroundColor: bgColor }}
-        className="w-10 h-10 rounded-xl items-center justify-center mb-3"
-      >
+  color: string;
+  bgColor: string;
+  onPress?: () => void;
+}) {
+  const content = (
+    <View style={[s.statCard, onPress && s.statCardTappable]}>
+      <View style={[s.statIconWrap, { backgroundColor: bgColor }]}>
         <Icon size={20} color={color} />
       </View>
-      <View>
-        <Text className="text-2xl font-bold text-slate-800">{value}</Text>
-        <Text className="text-slate-500 text-xs mt-1">{label}</Text>
+      <Text style={s.statValue}>{value}</Text>
+      <Text style={s.statLabel}>{label}</Text>
+      {onPress && (
+        <View style={[s.statArrow, { backgroundColor: bgColor }]}>
+          <ChevronRight size={12} color={color} />
+        </View>
+      )}
+    </View>
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity style={{ flex: 1 }} onPress={onPress} activeOpacity={0.75}>
+        {content}
+      </TouchableOpacity>
+    );
+  }
+  return <View style={{ flex: 1 }}>{content}</View>;
+}
+
+// ─── Admin menu item ──────────────────────────────────────────────────────────
+
+function AdminItem({
+  icon: Icon,
+  label,
+  description,
+  color,
+  bgColor,
+  onPress,
+}: {
+  icon: any;
+  label: string;
+  description: string;
+  color: string;
+  bgColor: string;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity style={s.adminItem} onPress={onPress} activeOpacity={0.7}>
+      <View style={[s.adminIconWrap, { backgroundColor: bgColor }]}>
+        <Icon size={20} color={color} />
       </View>
-    </Card.Content>
-  </Card>
-);
+      <View style={s.adminItemText}>
+        <Text style={s.adminItemLabel}>{label}</Text>
+        <Text style={s.adminItemDesc}>{description}</Text>
+      </View>
+      <ChevronRight size={18} color="#cbd5e1" />
+    </TouchableOpacity>
+  );
+}
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
 
 export function GroupDetailScreen() {
   const route = useRoute<any>();
@@ -61,13 +108,14 @@ export function GroupDetailScreen() {
   const { activeGroup, getGroupDetails, removeMember, isLoading } = useGroupStore();
   const { user } = useAuthStore();
   const [activeGoal, setActiveGoal] = useState<Goal | null>(null);
+  const [leaveConfirmVisible, setLeaveConfirmVisible] = useState(false);
 
-  // Find current user's role level
-  const currentUserGroup = activeGroup?.userGroups?.find(
-    (ug) => ug.user.id === user?.id
-  );
+  const currentUserGroup = activeGroup?.userGroups?.find(ug => ug.user.id === user?.id);
   const myLevel = currentUserGroup?.groupRole?.level || 0;
-  const canManageMembers = myLevel >= ROLE_LEVELS.ADMIN;
+  const canManageActivities = myLevel >= ROLE_LEVELS.ADMIN;
+  const canManageRoles      = myLevel >= ROLE_LEVELS.MANAGER;
+  const canAddMembers        = myLevel >= ROLE_LEVELS.MANAGER;
+  const isFounder            = myLevel >= ROLE_LEVELS.FOUNDER;
 
   useEffect(() => {
     if (groupId) {
@@ -80,72 +128,59 @@ export function GroupDetailScreen() {
     try {
       const goal = await goalService.getActiveGoal(groupId);
       setActiveGoal(goal);
-    } catch (error) {
-      console.log("No active goal or error fetching", error);
+    } catch {
+      // No active goal
     }
   };
 
-  const handleLeaveGroup = () => {
-    Alert.alert(
-      "Salirse del Grupo",
-      `¿Seguro que quieres salir de "${activeGroup?.name}"?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Salir",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await removeMember(groupId, user!.id);
-              navigation.navigate("GroupsList");
-            } catch {
-              Alert.alert("Error", "No se pudo salir del grupo.");
-            }
-          },
-        },
-      ]
-    );
+  const handleLeaveGroup = async () => {
+    setLeaveConfirmVisible(false);
+    try {
+      await removeMember(groupId, user!.id);
+      navigation.navigate("GroupsList");
+    } catch {
+      // Error handled by store
+    }
   };
+
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(amount);
 
   if (!activeGroup && isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <Text>Cargando...</Text>
+      <SafeAreaView style={s.centered}>
+        <Text style={s.loadingText}>Cargando...</Text>
       </SafeAreaView>
     );
   }
 
   if (!activeGroup) {
     return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center">
-        <Text>Grupo no encontrado</Text>
-        <Button
-          title="Volver"
-          onPress={() => navigation.goBack()}
-          variant="ghost"
-        />
+      <SafeAreaView style={s.centered}>
+        <Text style={s.loadingText}>Grupo no encontrado</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.ghostBtn}>
+          <Text style={s.ghostBtnText}>Volver</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("es-CL", {
-      style: "currency",
-      currency: "CLP",
-    }).format(amount);
-  };
+  const hasAdminActions = canManageActivities || canManageRoles || canAddMembers;
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
-      <View className="px-6 py-4 flex-row items-center justify-between bg-white border-b border-gray-100">
-        <TouchableOpacity onPress={() => navigation.navigate("GroupsList")}>
+    <SafeAreaView style={s.root}>
+      {/* Header */}
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => navigation.navigate("GroupsList")} style={s.backBtn}>
           <ChevronLeft size={24} color="#1e293b" />
         </TouchableOpacity>
-        <View className="items-center">
-          <Text className="text-lg font-bold text-slate-900">{activeGroup.name}</Text>
-          <Text className="text-slate-400 text-xs">{activeGroup.description || "Sin descripción"}</Text>
+        <View style={s.headerCenter}>
+          <Text style={s.headerTitle} numberOfLines={1}>{activeGroup.name}</Text>
+          {activeGroup.description ? (
+            <Text style={s.headerSub} numberOfLines={1}>{activeGroup.description}</Text>
+          ) : null}
         </View>
-        <View style={{ width: 24 }} />
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
@@ -153,100 +188,193 @@ export function GroupDetailScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isLoading}
-            onRefresh={() => {
-              getGroupDetails(groupId);
-              fetchActiveGoal();
-            }}
+            onRefresh={() => { getGroupDetails(groupId); fetchActiveGoal(); }}
           />
         }
       >
-        <View className="p-4">
-          {/* Grid de Resumen */}
-          <View className="flex-row flex-wrap">
-            <View className="w-1/2 p-1">
-              <SummaryCard
-                icon={Calendar}
-                value={activeGroup.semesters?.length?.toString() || "0"}
-                label="Semestres"
-                color="#3AC4BE"
-                bgColor="#d0f5f3"
-              />
-            </View>
-            <View className="w-1/2 p-1">
-              <SummaryCard
-                icon={Users}
-                value={activeGroup.userGroups?.length?.toString() || "0"}
-                label="Miembros"
-                color="#059669"
-                bgColor="#D1FAE5"
-              />
-            </View>
-            <View className="w-1/2 p-1">
-              <SummaryCard
-                icon={Target}
-                value={activeGoal ? formatCurrency(activeGoal.targetAmount) : "Sin Meta"}
-                label="Meta Activa"
-                color="#D97706"
-                bgColor="#FEF3C7"
-              />
-            </View>
-            <View className="w-1/2 p-1">
-              <SummaryCard
-                icon={Clock}
-                value="..."
-                label="Próximamente"
-                color="#64748b"
-                bgColor="#f1f5f9"
-              />
-            </View>
+        {/* ─── Stats grid ─── */}
+        <View style={s.statsSection}>
+          <View style={s.statsRow}>
+            <StatCard
+              icon={Calendar}
+              value={activeGroup.semesters?.length?.toString() || "0"}
+              label="Semestres"
+              color="#3AC4BE"
+              bgColor="#e0f7f6"
+              onPress={() => navigation.navigate("TabActivities")}
+            />
+            <StatCard
+              icon={Users}
+              value={activeGroup.userGroups?.length?.toString() || "0"}
+              label="Miembros"
+              color="#059669"
+              bgColor="#D1FAE5"
+              onPress={() => navigation.navigate("GroupRolesList", { groupId })}
+            />
           </View>
+          <View style={s.statsRow}>
+            <StatCard
+              icon={Target}
+              value={activeGoal ? formatCurrency(activeGoal.targetAmount) : "Sin meta"}
+              label="Meta activa"
+              color="#D97706"
+              bgColor="#FEF3C7"
+            />
+            <StatCard
+              icon={Calendar}
+              value="—"
+              label="Próximamente"
+              color="#8b5cf6"
+              bgColor="#EDE9FE"
+            />
+          </View>
+        </View>
 
-          {/* Upcoming Activities Section */}
-          <UpcomingActivities groupId={groupId} />
+        {/* ─── Upcoming activities ─── */}
+        <UpcomingActivities groupId={groupId} />
 
-          {canManageMembers && (
-            <View className="mt-8 px-2 space-y-6">
-              <View>
-                <Text className="text-lg font-bold text-slate-800 mb-3">Administración</Text>
-                <View className="flex-row gap-2 flex-wrap">
-                  <Button
-                    title="Roles"
-                    variant="secondary"
-                    className="flex-1 min-w-[45%]"
-                    onPress={() => navigation.navigate("GroupRolesList", { groupId })}
-                  />
-                  <Button
-                    title="Semestres"
-                    variant="secondary"
-                    className="flex-1 min-w-[45%]"
+        {/* ─── Admin section ─── */}
+        {hasAdminActions && (
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Administración</Text>
+            <View style={s.adminCard}>
+              {canManageRoles && (
+                <AdminItem
+                  icon={Shield}
+                  label="Miembros y Roles"
+                  description="Gestiona miembros y asigna roles"
+                  color="#8b5cf6"
+                  bgColor="#F5F3FF"
+                  onPress={() => navigation.navigate("GroupRolesList", { groupId })}
+                />
+              )}
+              {canManageActivities && (
+                <>
+                  {canManageRoles && <View style={s.itemDivider} />}
+                  <AdminItem
+                    icon={Calendar}
+                    label="Semestres"
+                    description="Gestiona semestres y actividades"
+                    color="#3AC4BE"
+                    bgColor="#e0f7f6"
                     onPress={() => navigation.navigate("TabActivities")}
                   />
-                  <Button
-                    title="Agregar Miembro"
-                    variant="primary"
-                    className="w-full mt-2"
+                </>
+              )}
+              {canAddMembers && (
+                <>
+                  {(canManageRoles || canManageActivities) && <View style={s.itemDivider} />}
+                  <AdminItem
+                    icon={UserPlus}
+                    label="Agregar Miembro"
+                    description="Invita a alguien al grupo"
+                    color="#059669"
+                    bgColor="#D1FAE5"
                     onPress={() => navigation.navigate("AddMember", { groupId })}
                   />
-                </View>
-              </View>
+                </>
+              )}
             </View>
-          )}
+          </View>
+        )}
 
-          {/* Leave group (for non-admin members only) */}
-          {!canManageMembers && (
-            <View className="mt-8 px-2">
-              <TouchableOpacity
-                onPress={handleLeaveGroup}
-                className="flex-row items-center justify-center py-3 border border-red-200 rounded-xl bg-red-50"
-              >
-                <LogOut size={18} color="#ef4444" />
-                <Text className="text-red-600 font-bold ml-2">Salirse del Grupo</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-        </View>
+        {/* ─── Leave group ─── */}
+        {!isFounder && (
+          <View style={s.section}>
+            <TouchableOpacity
+              onPress={() => setLeaveConfirmVisible(true)}
+              style={s.leaveBtn}
+              activeOpacity={0.8}
+            >
+              <LogOut size={18} color="#ef4444" />
+              <Text style={s.leaveBtnText}>Salirse del Grupo</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
+
+      <ConfirmModal
+        visible={leaveConfirmVisible}
+        title="Salirse del grupo"
+        message={`¿Seguro que quieres salir de "${activeGroup.name}"?`}
+        confirmLabel="Salir"
+        cancelLabel="Cancelar"
+        variant="warning"
+        onConfirm={handleLeaveGroup}
+        onCancel={() => setLeaveConfirmVisible(false)}
+      />
     </SafeAreaView>
   );
 }
+
+// ─── Estilos ──────────────────────────────────────────────────────────────────
+
+const s = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#f8fafc" },
+  centered: { flex: 1, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" },
+  loadingText: { color: "#64748b", fontSize: 16 },
+  ghostBtn: { marginTop: 12, paddingVertical: 10, paddingHorizontal: 20 },
+  ghostBtnText: { color: "#3AC4BE", fontWeight: "700" },
+
+  header: {
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 16, paddingVertical: 12,
+    backgroundColor: "#ffffff", borderBottomWidth: 1, borderBottomColor: "#f1f5f9",
+  },
+  backBtn: { width: 40, height: 40, alignItems: "center", justifyContent: "center", borderRadius: 20 },
+  headerCenter: { flex: 1, alignItems: "center" },
+  headerTitle: { fontSize: 17, fontWeight: "700", color: "#0f172a" },
+  headerSub: { fontSize: 12, color: "#94a3b8", marginTop: 1 },
+
+  statsSection: { padding: 16, gap: 10 },
+  statsRow: { flexDirection: "row", gap: 10 },
+
+  statCard: {
+    backgroundColor: "#ffffff", borderRadius: 20, padding: 16,
+    borderWidth: 1, borderColor: "#f1f5f9",
+    shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1,
+    minHeight: 110, justifyContent: "space-between",
+  },
+  statCardTappable: { borderColor: "#e2e8f0" },
+  statIconWrap: {
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: "center", justifyContent: "center", marginBottom: 8,
+  },
+  statValue: { fontSize: 22, fontWeight: "800", color: "#0f172a" },
+  statLabel: { fontSize: 12, color: "#94a3b8", fontWeight: "600", marginTop: 2 },
+  statArrow: {
+    position: "absolute", top: 12, right: 12,
+    width: 22, height: 22, borderRadius: 11,
+    alignItems: "center", justifyContent: "center",
+  },
+
+  section: { paddingHorizontal: 16, marginBottom: 12 },
+  sectionTitle: { fontSize: 13, fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 },
+
+  adminCard: {
+    backgroundColor: "#ffffff", borderRadius: 20,
+    borderWidth: 1, borderColor: "#f1f5f9",
+    shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1,
+    overflow: "hidden",
+  },
+  adminItem: {
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 16, paddingVertical: 14,
+  },
+  adminIconWrap: {
+    width: 42, height: 42, borderRadius: 21,
+    alignItems: "center", justifyContent: "center", marginRight: 14,
+  },
+  adminItemText: { flex: 1 },
+  adminItemLabel: { fontSize: 15, fontWeight: "700", color: "#0f172a" },
+  adminItemDesc: { fontSize: 12, color: "#94a3b8", marginTop: 1 },
+  itemDivider: { height: 1, backgroundColor: "#f8fafc", marginHorizontal: 16 },
+
+  leaveBtn: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 8, paddingVertical: 14,
+    borderRadius: 16, borderWidth: 1, borderColor: "#fecaca",
+    backgroundColor: "#fff5f5",
+  },
+  leaveBtnText: { color: "#ef4444", fontWeight: "700", fontSize: 15 },
+});

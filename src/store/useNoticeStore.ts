@@ -4,6 +4,7 @@ import Toast from "react-native-toast-message";
 import { Notice, CreateNoticeInput, UpdateNoticeInput } from "../types/notice.types";
 import { noticeService } from "../modules/notices/services/notice.service";
 import { useNotificationStore } from "./useNotificationStore";
+import { useGroupStore } from "./useGroupStore";
 
 // ─── SecureStore helpers ──────────────────────────────────────────────────────
 
@@ -138,8 +139,9 @@ export const useNoticeStore = create<NoticeStore>((set, get) => ({
 
       // Agregar al feed local de notificaciones
       const { addNotice } = useNotificationStore.getState();
+      const groupName = useGroupStore.getState().groups.find(g => g.id === groupId)?.name;
       newOnes.forEach((n) => {
-        addNotice({ title: n.title, body: n.description });
+        addNotice({ title: n.title, body: n.description, groupName });
       });
 
       // Toast resumen

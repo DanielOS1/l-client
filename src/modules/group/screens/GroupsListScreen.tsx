@@ -15,6 +15,7 @@ import { Plus, LogOut, ChevronRight, Users, Calendar, Shield, Bell } from "lucid
 import { AppLogo } from "../../../components/AppLogo";
 import { ROLE_LEVELS } from "../../../constants/role-levels";
 import { useNotificationStore } from "../../../store/useNotificationStore";
+import { useNoticeStore } from "../../../store/useNoticeStore";
 
 function GroupCard({
   group,
@@ -139,13 +140,25 @@ export function GroupsListScreen() {
   const navigation = useNavigation<any>();
   const { user, logout } = useAuthStore();
   const { groups, fetchUserGroups, isLoading, setActiveGroup } = useGroupStore();
-  const { unreadCount: notifCount } = useNotificationStore();
+  const { unreadCount: notifCount, checkForNewAssignments } = useNotificationStore();
+  const { checkForNewNotices } = useNoticeStore();
 
   useEffect(() => {
     if (user?.id) {
       fetchUserGroups(user.id);
+      checkForNewAssignments(user.id);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (groups.length === 0) return;
+    const checkAll = async () => {
+      for (const group of groups) {
+        await checkForNewNotices(group.id);
+      }
+    };
+    checkAll();
+  }, [groups]);
 
   const handleGroupPress = (group: any) => {
     setActiveGroup(group);

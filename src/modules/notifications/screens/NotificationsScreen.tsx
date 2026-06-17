@@ -86,14 +86,13 @@ function NotificationItem({ item }: { item: AppNotification }) {
           {item.body}
         </Text>
 
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
           <View
             style={{
               paddingHorizontal: 8,
               paddingVertical: 2,
               borderRadius: 100,
               backgroundColor: isAssignment ? "#e0f7f6" : "#FFF8E1",
-              marginRight: 8,
             }}
           >
             <Text
@@ -106,6 +105,9 @@ function NotificationItem({ item }: { item: AppNotification }) {
               {isAssignment ? "Asignación" : "Aviso"}
             </Text>
           </View>
+          {item.groupName && (
+            <Text style={{ fontSize: 11, color: "#94a3b8" }}>• {item.groupName}</Text>
+          )}
           <Text style={{ fontSize: 11, color: "#94a3b8" }}>{relativeTime(item.createdAt)}</Text>
         </View>
       </View>
