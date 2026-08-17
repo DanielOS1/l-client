@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "l-cliente",
+    "name": "LolosApp",
     "slug": "l-cliente",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,19 +16,39 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.lolosapp.cliente",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "usesCleartextTraffic": true
+      "versionCode": 5
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store"
-    ]
+      "expo-secure-store",
+      [
+        "expo-audio",
+        {
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-asset",
+      "expo-updates"
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/5dc18f8f-bb2c-4f91-ad8e-e1d8dd892ada"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5dc18f8f-bb2c-4f91-ad8e-e1d8dd892ada"
+      }
+    }
   }
 }

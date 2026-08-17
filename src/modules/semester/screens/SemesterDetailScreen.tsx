@@ -30,6 +30,7 @@ import {
 } from "lucide-react-native";
 import Toast from "react-native-toast-message";
 import { ConfirmModal } from "../../../components/ConfirmModal";
+import { FullScreenLoader } from "../../../components/loading/FullScreenLoader";
 
 function formatDate(str: string) {
   return new Date(str + (str.includes("T") ? "" : "T12:00:00")).toLocaleDateString("es-CL");
@@ -98,11 +99,7 @@ export function SemesterDetailScreen() {
   };
 
   if (!activeSemester && isLoading) {
-    return (
-      <SafeAreaView style={s.centered}>
-        <Text style={s.loadingText}>Cargando...</Text>
-      </SafeAreaView>
-    );
+    return <FullScreenLoader label="Cargando semestre..." />;
   }
 
   if (!activeSemester) {

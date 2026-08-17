@@ -31,6 +31,7 @@ import { groupService } from "../services/group.service";
 import { ActionSheet, ActionSheetOption } from "../../../components/ActionSheet";
 import { ConfirmModal } from "../../../components/ConfirmModal";
 import { Pencil, Trash2, RefreshCw as RoleIcon, UserX as RemoveIcon } from "lucide-react-native";
+import Toast from "react-native-toast-message";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -228,11 +229,17 @@ export function GroupRolesListScreen() {
 
   const doRemoveMember = async () => {
     if (!selectedMember) return;
+    const memberName = `${selectedMember.user.firstName} ${selectedMember.user.lastName}`;
     setRemoveConfirmVisible(false);
     try {
       await removeMember(groupId, selectedMember.user.id);
-    } catch {
-      // Error handled by store
+      Toast.show({ type: "success", text1: "Miembro removido", text2: `${memberName} ya no pertenece al grupo` });
+    } catch (e: any) {
+      Toast.show({
+        type: "error",
+        text1: "No se pudo remover al miembro",
+        text2: e.response?.data?.message || "Ocurrió un error",
+      });
     } finally {
       setSelectedMember(null);
     }
@@ -240,11 +247,17 @@ export function GroupRolesListScreen() {
 
   const handleAssignRole = async (role: GroupRole) => {
     if (!selectedMember) return;
+    const memberName = `${selectedMember.user.firstName} ${selectedMember.user.lastName}`;
     setRolePickerVisible(false);
     try {
       await assignRole(groupId, selectedMember.user.id, role.id);
-    } catch {
-      // Error handled by store
+      Toast.show({ type: "success", text1: "Rol asignado", text2: `${memberName} ahora es ${role.name}` });
+    } catch (e: any) {
+      Toast.show({
+        type: "error",
+        text1: "No se pudo asignar el rol",
+        text2: e.response?.data?.message || "Ocurrió un error",
+      });
     } finally {
       setSelectedMember(null);
     }
@@ -258,12 +271,18 @@ export function GroupRolesListScreen() {
 
   const doDeleteRole = async () => {
     if (!selectedRole) return;
+    const roleName = selectedRole.name;
     setDeleteRoleConfirmVisible(false);
     try {
       await groupService.deleteRole(selectedRole.id);
       await getGroupDetails(groupId);
-    } catch {
-      // Error handled by store
+      Toast.show({ type: "success", text1: "Rol eliminado", text2: `"${roleName}" fue eliminado` });
+    } catch (e: any) {
+      Toast.show({
+        type: "error",
+        text1: "No se pudo eliminar el rol",
+        text2: e.response?.data?.message || "Ocurrió un error",
+      });
     } finally {
       setSelectedRole(null);
     }
@@ -500,7 +519,11 @@ export function GroupRolesListScreen() {
         title={selectedMember ? `${selectedMember.user.firstName} ${selectedMember.user.lastName}` : ""}
         subtitle={selectedMember?.groupRole ? `${selectedMember.groupRole.name} · Nv. ${selectedMember.groupRole.level}` : "Sin rol asignado"}
         options={memberActions}
-        onClose={() => { setMemberActionVisible(false); setSelectedMember(null); }}
+        // Ojo: ActionSheet llama a onClose() justo después de cada opción (ver
+        // ActionSheet.tsx), así que NO limpiamos selectedMember aquí — lo
+        // necesitan el selector de rol y el modal de confirmación que se abren
+        // a continuación. Se limpia en el finally de cada acción.
+        onClose={() => setMemberActionVisible(false)}
       />
 
       {/* Role ActionSheet */}
@@ -509,7 +532,9 @@ export function GroupRolesListScreen() {
         title={selectedRole?.name ?? ""}
         subtitle={selectedRole ? `Nivel ${selectedRole.level}` : undefined}
         options={roleActions}
-        onClose={() => { setRoleActionVisible(false); setSelectedRole(null); }}
+        // mismo motivo que arriba: no limpiar selectedRole acá, lo necesita
+        // el modal de confirmación de eliminación que se abre después
+        onClose={() => setRoleActionVisible(false)}
       />
 
       {/* Remove member confirm */}

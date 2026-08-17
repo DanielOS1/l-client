@@ -9,6 +9,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { useActivityStore } from "../../../store/useActivityStore";
 import { Button } from "../../../components/Button";
+import { LoadingBar } from "../../../components/loading/LoadingBar";
 import {
   MapPin,
   Calendar,
@@ -74,7 +75,11 @@ export function ActivitiesList({ semesterId }: ActivitiesListProps) {
         />
       </View>
 
-      {activities.length === 0 && !isLoading ? (
+      {isLoading && activities.length === 0 ? (
+        <View className="px-2 py-4">
+          <LoadingBar />
+        </View>
+      ) : activities.length === 0 && !isLoading ? (
         <View className="items-center justify-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-300 mx-2">
           <Text className="text-slate-400 mb-2">No hay actividades aún.</Text>
           <Button

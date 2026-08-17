@@ -7,6 +7,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  ScrollView,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { useAuthStore } from "../../../store/useAuthStore";
@@ -14,10 +15,12 @@ import { Input } from "../../../components/Input";
 import { Button } from "../../../components/Button";
 import { AppLogo } from "../../../components/AppLogo";
 import { useNavigation } from "@react-navigation/native";
+import { useKeyboardScrollToInput } from "../../../hooks/useKeyboardScrollToInput";
 
 export function LoginScreen() {
   const navigation = useNavigation<any>();
   const { login, isLoading } = useAuthStore();
+  const { scrollRef, handleFocus } = useKeyboardScrollToInput();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -54,7 +57,12 @@ export function LoginScreen() {
         style={{ flex: 1 }}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={{ flex: 1 }}>
+          <ScrollView
+            ref={scrollRef}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 200 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             {/* Top teal band */}
             <View
               style={{
@@ -104,7 +112,7 @@ export function LoginScreen() {
                   textAlign: "center",
                 }}
               >
-                Gestión para organizaciones estudiantiles
+                Gestión para organizaciones
               </Text>
             </View>
 
@@ -127,6 +135,7 @@ export function LoginScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
+                onFocus={handleFocus}
                 onChangeText={setEmail}
               />
 
@@ -135,6 +144,7 @@ export function LoginScreen() {
                 placeholder="••••••••"
                 secureTextEntry
                 value={password}
+                onFocus={handleFocus}
                 onChangeText={setPassword}
               />
 
@@ -152,7 +162,7 @@ export function LoginScreen() {
                 className="mt-2"
               />
             </View>
-          </View>
+          </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>

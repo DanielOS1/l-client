@@ -10,6 +10,10 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  /** solo para el checkAuth() de arranque en frío — separado de isLoading para
+   * que RootNavigator no vuelva a mostrar el splash cada vez que login()/register()
+   * ponen isLoading en true (comparten el store, pero son eventos distintos) */
+  isCheckingAuth: boolean;
   error: string | null;
   login: (email: string, password: string) => Promise<void>;
   register: (userData: Partial<User>) => Promise<void>;
@@ -22,6 +26,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: false,
+  isCheckingAuth: false,
   error: null,
 
   login: async (email, password) => {
@@ -68,18 +73,18 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   checkAuth: async () => {
-    set({ isLoading: true });
+    set({ isCheckingAuth: true });
     const token = await SecureStore.getItemAsync("auth_token");
     if (token) {
       try {
         const user = await authService.getProfile(token);
-        set({ token, user, isAuthenticated: true, isLoading: false });
+        set({ token, user, isAuthenticated: true, isCheckingAuth: false });
       } catch {
         await SecureStore.deleteItemAsync("auth_token");
-        set({ token: null, user: null, isAuthenticated: false, isLoading: false });
+        set({ token: null, user: null, isAuthenticated: false, isCheckingAuth: false });
       }
     } else {
-      set({ isLoading: false });
+      set({ isCheckingAuth: false });
     }
   },
 }));

@@ -1,0 +1,29 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "autoIncrement": true,
+      "channel": "preview",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "API_URL": "https://l-server-972703392998.us-central1.run.app"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "channel": "production",
+      "env": {
+        "API_URL": "https://l-server-972703392998.us-central1.run.app"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

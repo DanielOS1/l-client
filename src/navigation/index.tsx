@@ -1,7 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { View, ActivityIndicator } from "react-native";
 import { useAuthStore } from "../store/useAuthStore";
 import { LoginScreen } from "../modules/auth/screens/LoginScreen";
 import { RegisterScreen } from "../modules/auth/screens/RegisterScreen";
@@ -11,6 +10,8 @@ import { GroupTabNavigator } from "./GroupTabNavigator";
 import { CreateGroupScreen } from "../modules/group/screens/CreateGroupScreen";
 import { UserProfileScreen } from "../modules/auth/screens/UserProfileScreen";
 import { NotificationsScreen } from "../modules/notifications/screens/NotificationsScreen";
+import AnimatedSplash from "../components/splash/AnimatedSplash";
+import { PostLoginLoading } from "../components/loading/PostLoginLoading";
 
 const Stack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
@@ -24,19 +25,45 @@ function AuthNavigator() {
   );
 }
 
-export function RootNavigator() {
-  const { isAuthenticated, checkAuth, isLoading } = useAuthStore();
+export function RootNavigator({ onReady }: { onReady: () => void }) {
+  const { isAuthenticated, checkAuth, isCheckingAuth } = useAuthStore();
+  const [splashAnimationDone, setSplashAnimationDone] = useState(false);
+  const [showPostLoginTransition, setShowPostLoginTransition] = useState(false);
+  const wasAuthenticatedRef = useRef(isAuthenticated);
 
   useEffect(() => {
     checkAuth();
   }, []);
 
-  if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <ActivityIndicator size="large" color="#3AC4BE" />
-      </View>
-    );
+  useEffect(() => {
+    onReady();
+  }, []);
+
+  // se muestra mientras checkAuth() no termine O la animación no haya terminado.
+  // OJO: isCheckingAuth (no isLoading) — login()/register() también usan isLoading
+  // para sus propios spinners de botón, y eso no debe re-disparar este splash.
+  const showSplash = isCheckingAuth || !splashAnimationDone;
+
+  // Detecta un login/registro recién hecho (false -> true) una vez ya pasamos
+  // la splash inicial — el caso de sesión ya guardada al abrir la app (checkAuth)
+  // se resuelve DENTRO de la fase de splash, así que nunca dispara esto.
+  useEffect(() => {
+    if (showSplash) {
+      wasAuthenticatedRef.current = isAuthenticated;
+      return;
+    }
+    if (!wasAuthenticatedRef.current && isAuthenticated) {
+      setShowPostLoginTransition(true);
+    }
+    wasAuthenticatedRef.current = isAuthenticated;
+  }, [isAuthenticated, showSplash]);
+
+  if (showSplash) {
+    return <AnimatedSplash onAnimationEnd={() => setSplashAnimationDone(true)} />;
+  }
+
+  if (showPostLoginTransition) {
+    return <PostLoginLoading onDone={() => setShowPostLoginTransition(false)} />;
   }
 
   return (
